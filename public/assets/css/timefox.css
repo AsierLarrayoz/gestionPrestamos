@@ -1,0 +1,8 @@
+[data-bs-theme=light] {
+    --bs-primary: #ff5e02;
+}
+
+.card {
+    box-shadow: unset!important;
+    border: 1px solid #cccccc;
+}

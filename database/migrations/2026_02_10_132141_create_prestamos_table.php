@@ -17,7 +17,7 @@ return new class extends Migration
             $table->dateTime('fecha_devuelto')->nullable();
             $table->integer('cantidad_prestada');
             $table->integer('cantidad_devuelta')->nullable();
-            $table->text('descripcion')->nullable();
+            $table->text('descripcion')->default(null)->nullable();
             $table->foreignId('activo_id')->constrained('activos');
             $table->foreignId('user_id')->constrained('users');
             $table->timestamps();

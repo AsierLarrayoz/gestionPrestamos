@@ -14,13 +14,15 @@ return new class extends Migration
         Schema::create('activos', function (Blueprint $table) {
             $table->id();
             $table->string('serial_number')->unique()->nullable();
-            $table->text('dscripcion')->nullable();
+            $table->uuid('uuid')->unique();
+            $table->string('rfid_code')->nullable()->unique();
+            $table->text('observaciones')->nullable();
             $table->integer('cantidad');
-            $table->boolean('is_serializable')->default(true);
-            $table->foreignId('marca_id')->constrained('marcas');
+            $table->boolean('is_serialized')->default(true);
             $table->foreignId('modelo_id')->constrained('modelos');
             $table->foreignId('salud_id')->constrained('salud');
             $table->foreignId('tipo_id')->constrained('tipos');
+            $table->foreignId('almacen_id')->constrained('almacenes', 'id');
             $table->timestamps();
         });
     }

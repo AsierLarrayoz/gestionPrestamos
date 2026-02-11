@@ -6,5 +6,39 @@ use Illuminate\Database\Eloquent\Model;
 
 class Activo extends Model
 {
-    //
+    protected $fillable = [
+        'serial_number',
+        'observaciones',
+        'cantidad',
+        'is_serialized',
+        'modelo_id',
+        'salud_id',
+        'tipo_id',
+        'uuid',
+        'rfid_code'
+    ];
+    public function tipo()
+    {
+        return $this->belongsTo(Tipo::class);
+    }
+    public function modelo()
+    {
+        return $this->belongsTo(Modelo::class);
+    }
+    public function salud()
+    {
+        return $this->belongsTo(Salud::class); // Asegúrate de tener el modelo Salud.php
+    }
+    public function prestamos()
+    {
+        return $this->hasMany(Prestamo::class);
+    }
+    public function incidencias()
+    {
+        return $this->hasMany(Incidencia::class);
+    }
+    public function prestamoActivo()
+    {
+        return $this->prestamos()->whereNull('fecha_devuelto')->first();
+    }
 }

@@ -13,12 +13,13 @@ return new class extends Migration
     {
         Schema::create('incidencias', function (Blueprint $table) {
             $table->id();
-            $table->text('descripcion'); //lo pongo nullable?
+            $table->text('descripcion')->nullable();
             $table->dateTime('fecha_incidencia');
             $table->foreignId('estado_id')->constrained('estados');
             $table->foreignId('nivel_id')->constrained('niveles', 'id');
             $table->foreignId('user_id')->constrained('users');
-            $table->foreignId('prestamo_id')->constrained('prestamos');
+            $table->foreignId('activo_id')->constrained('activos');
+            $table->foreignId('prestamo_id')->nullable()->constrained('prestamos');
             $table->timestamps();
         });
     }

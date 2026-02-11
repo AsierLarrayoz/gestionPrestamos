@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Prestamo;
+use App\Models\Activo;
 
 class PrestamoController extends Controller
 {
@@ -11,54 +13,59 @@ class PrestamoController extends Controller
      */
     public function index()
     {
-        //
+        $prestamosActivos = Prestamo::whereNull('fecha_devuelto')->get();
+        return view('prestamos.index', compact('prestamosActivos'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
+    public function historial()
+    {
+        $prestamosPasados = Prestamo::where('fecha_devuelto', '<=', now())->get();
+        return view('prestamos.historial', compact('prestamosPasados'));
+    }
+
     public function create()
     {
-        //
+        return view('prestamos.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
-    }
+        $request->validate([
+            'codigo' => 'required'
+        ]);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
+        $codigo = $request->input('codigo');
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
+        $activo = Activo::where('uuid', $codigo)
+            ->orWhere('rfid_code', $codigo)
+            ->first();
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
+        if (!$activo) {
+            return back()->with('error', 'El código escaneado no existe en el sistema.');
+        }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        $prestamoPendiente = Prestamo::where('activo_id', $activo->id)
+            ->whereNull('fecha_devuelto')
+            ->first();
+
+        if ($prestamoPendiente) {
+            $prestamoPendiente->update([
+                'fecha_devuelto' => now(),
+                'cantidad_devuelta' => $prestamoPendiente->cantidad_prestada
+            ]);
+
+            return back()->with('success', 'Devolución registrada: ' . $activo->modelo->modelo);
+        }
+
+        Prestamo::create([
+            'fecha_prestado' => now(),
+            'cantidad_prestada' => 1,
+            'activo_id' => $activo->id,
+            'user_id' => auth()->id(),
+            'descripcion' => $request->descripcion
+            //Aqui algo de almacen
+        ]);
+
+        return back()->with('success', 'Préstamo registrado: ' . $activo->modelo->modelo);
     }
 }

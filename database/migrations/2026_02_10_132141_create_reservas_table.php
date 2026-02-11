@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('reservas', function (Blueprint $table) {
             $table->id();
             $table->dateTime('fecha_inicio');
-            $table->dateTime('fecha_fin')->nullable(); //No se si poner nullable
-            $table->integer('cantidad')->nullable(); //No se si poner nullable
+            $table->dateTime('fecha_fin')->nullable();
+            $table->integer('cantidad')->default(1);
             $table->text('descripcion')->nullable();
             $table->foreignId('tipo_id')->constrained('tipos');
             $table->foreignId('user_id')->constrained('users');

@@ -8,9 +8,6 @@ use App\Models\Activo;
 
 class PrestamoController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         $prestamosActivos = Prestamo::whereNull('fecha_devuelto')->get();
@@ -31,18 +28,16 @@ class PrestamoController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'codigo' => 'required'
+            'codigo' => 'required',
+            'almacen_id' => 'required|exists:almacenes,id'
         ]);
 
         $codigo = $request->input('codigo');
+        $almacenActual = $request->input('almacen_id');
 
         $activo = Activo::where('uuid', $codigo)
             ->orWhere('rfid_code', $codigo)
-            ->first();
-
-        if (!$activo) {
-            return back()->with('error', 'El código escaneado no existe en el sistema.');
-        }
+            ->firstOrFail();
 
         $prestamoPendiente = Prestamo::where('activo_id', $activo->id)
             ->whereNull('fecha_devuelto')
@@ -51,21 +46,26 @@ class PrestamoController extends Controller
         if ($prestamoPendiente) {
             $prestamoPendiente->update([
                 'fecha_devuelto' => now(),
-                'cantidad_devuelta' => $prestamoPendiente->cantidad_prestada
+                'cantidad_devuelta' => $prestamoPendiente->cantidad_prestada,
+                'almacen_devuelto_id' => $almacenActual
             ]);
 
-            return back()->with('success', 'Devolución registrada: ' . $activo->modelo->modelo);
+            $activo->update([
+                'almacen_id' => $almacenActual
+            ]);
+
+            return back()->with('success', 'Devolución registrada');
         }
 
         Prestamo::create([
             'fecha_prestado' => now(),
             'cantidad_prestada' => 1,
             'activo_id' => $activo->id,
-            'user_id' => auth()->id(),
+            'user_id' => auth()->user->id(),
+            'almacen_prestado_id' => $activo->almacen_id,
             'descripcion' => $request->descripcion
-            //Aqui algo de almacen
         ]);
 
-        return back()->with('success', 'Préstamo registrado: ' . $activo->modelo->modelo);
+        return back()->with('success', 'Préstamo iniciado desde su almacén de origen.');
     }
 }

@@ -3,31 +3,35 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Incidencia;
 
 class IncidenciaController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $incidencias = Incidencia::all();
+        return view('incidencias.index', compact($incidencias));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        return view('incidencias.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $validatedData = $request->validate([
+            'descripcion' => 'nullable|string',
+            'fecha_incidencia' => 'required|date',
+            'estado_id' => 'nullable|exists:estados,id',
+            'nivel_id' => 'nullable|exists:niveles,id',
+            'user_id' => 'required|exists:users,id',
+            'activo_id' => 'required|exists:activos,id',
+            'prestamo_id' => 'nullable|exists:prestamos,id',
+        ]);
+
+        Incidencia::create($validatedData);
+        return redirect()->back()->with('success', 'Incidencia creada exitosamente.');
     }
 
     /**

@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->text('descripcion')->nullable();
             $table->dateTime('fecha_incidencia');
-            $table->foreignId('estado_id')->constrained('estados');
-            $table->foreignId('nivel_id')->constrained('niveles', 'id');
+            $table->foreignId('estado_id')->nullable()->constrained('estados');
+            $table->foreignId('nivel_id')->nullable()->constrained('niveles', 'id');
             $table->foreignId('user_id')->constrained('users');
             $table->foreignId('activo_id')->constrained('activos');
             $table->foreignId('prestamo_id')->nullable()->constrained('prestamos');

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Models\Prestamo;
 use App\Models\Activo;
@@ -61,7 +62,7 @@ class PrestamoController extends Controller
             'fecha_prestado' => now(),
             'cantidad_prestada' => 1,
             'activo_id' => $activo->id,
-            'user_id' => auth()->user->id(),
+            'user_id' => Auth::id(),
             'almacen_prestado_id' => $activo->almacen_id,
             'descripcion' => $request->descripcion
         ]);

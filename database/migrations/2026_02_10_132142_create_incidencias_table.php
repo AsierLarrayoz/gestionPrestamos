@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('incidencias', function (Blueprint $table) {
             $table->id();
+            $table->string('titulo');
             $table->text('descripcion')->nullable();
             $table->dateTime('fecha_incidencia');
             $table->foreignId('estado_id')->nullable()->constrained('estados');

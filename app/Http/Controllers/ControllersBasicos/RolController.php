@@ -42,7 +42,7 @@ class RolController extends Controller
     }
     public function destroy(Rol $role)
     {
-        if ($role->usuario()->count() > 0) {
+        if ($role->users()->exists()) {
             return back()->with('error', 'No se puede eliminar un rol que tiene usuarios asignados.');
         }
         $role->delete();

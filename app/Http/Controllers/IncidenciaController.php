@@ -8,12 +8,14 @@ use App\Models\Incidencia;
 use App\Models\Activo;
 use App\Models\Nivel;
 use App\Models\Estado;
+use App\Models\Prestamo;
 
 class IncidenciaController extends Controller
 {
     public function index()
     {
-        $incidencias = Incidencia::all();
+        $incidencias = Incidencia::with(['activo.modelo', 'usuario', 'estado', 'nivel'])->get();
+        //Tendre que poner lo de paginate(10)
         return view('incidencias.index', compact('incidencias'));
     }
 
@@ -22,7 +24,8 @@ class IncidenciaController extends Controller
         $activos = Activo::all();
         $niveles = Nivel::all();
         $estados = Estado::all();
-
+        $prestamos = Prestamo::all();
+        //Tendre que poner lo de paginate(10)
         return view('incidencias.create', compact('activos', 'niveles', 'estados'));
     }
 
@@ -38,19 +41,8 @@ class IncidenciaController extends Controller
             'prestamo_id' => 'nullable|exists:prestamos,id',
         ]);
 
-        $incidencia = [
-            'titulo' => $request->titulo,
-            'descripcion' => $request->descripcion,
-            'fecha_incidencia' => $request->fecha_incidencia,
-            'estado_id' => $request->estado_id,
-            'activo_id' => $request->activo_id,
-            'prestamo_id' => $request->prestamo_id,
-            'user_id' => Auth::id(),
-            'nivel_id' => $request->nivel_id
-        ];
-        Incidencia::create($incidencia);
-
-
+        $datos = array_merge($validatedData, ['user_id' => Auth::id()]);
+        Incidencia::create($datos);
         return redirect()->route('incidencias.index')->with('success', 'Incidencia reportada exitosamente.');
     }
 
@@ -74,14 +66,14 @@ class IncidenciaController extends Controller
     {
         $incidencia = Incidencia::findOrFail($id);
 
-        $request->validate([
+        $validatedData = $request->validate([
             'titulo' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
             'estado_id' => 'nullable|exists:estados,id',
             'nivel_id' => 'required|exists:niveles,id',
         ]);
 
-        $incidencia->update($request->all());
+        $incidencia->update($validatedData);
 
         return redirect()->route('incidencias.index')->with('success', 'Incidencia actualizada.');
     }

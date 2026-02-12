@@ -17,6 +17,7 @@ class ActivoController extends Controller
     public function index()
     {
         $activos = Activo::with(['modelo.marca', 'tipo', 'salud', 'nivel'])->get();
+        //Tendre que poner lo de paginate(10)
         return view('activos.index', compact('activos'));
     }
 
@@ -27,7 +28,7 @@ class ActivoController extends Controller
         $tipos = Tipo::all();
         $niveles = Nivel::all();
         $almacenes = Almacen::all();
-
+        //Tendre que poner lo de paginate(10)
         return view('activos.create', compact('marcas', 'salud', 'tipos', 'niveles', 'almacenes'));
     }
 
@@ -102,25 +103,28 @@ class ActivoController extends Controller
 
         $cantidadAnterior = $activo->cantidad;
         $nuevaCantidad = $request->cantidad;
-        $diferencia = $nuevaCantidad - $cantidadAnterior;
+        $diferencia = $cantidadAnterior + $nuevaCantidad;
         $activo->update($validatedData);
 
         if ($diferencia != 0) {
             $almacenDestino = $activo->almacenes()->where('almacen_id', $request->almacen_id)->first();
-
             if ($almacenDestino) {
-                $activo->almacenes()->updateExistingPivot($request->almacen_id, [
-                    'cantidad' => $almacenDestino->pivot->cantidad + $diferencia
-                ]);
+                if ($almacenDestino->pivot->cantidad + $diferencia >= 0) {
+                    $activo->almacenes()->updateExistingPivot($request->almacen_id, [
+                        'cantidad' => $almacenDestino->pivot->cantidad
+                    ]);
+                } else {
+                    return back()->with('error', 'No hay tantas existencias para retirar');
+                }
             } else {
+                //Si en el almacen no hay nada solo se pueden añadir
                 if ($diferencia > 0) {
                     $activo->almacenes()->attach($request->almacen_id, ['cantidad' => $diferencia]);
                 } else {
-                    return back()->with('error', 'No puedes quitar stock de un almacén donde no hay existencias.');
+                    return back()->with('error', 'No puedes quitar cosas donde no hay');
                 }
             }
         }
-
         return redirect()->route('activos.index')->with('success', 'Activo y stock actualizados correctamente.');
     }
 

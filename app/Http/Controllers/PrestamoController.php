@@ -17,6 +17,7 @@ class PrestamoController extends Controller
         $prestamosActivos = Prestamo::with(['activo.modelo', 'usuario'])
             ->whereNull('fecha_devuelto')
             ->get();
+        //Tendre que poner lo de paginate(10)
         return view('prestamos.index', compact('prestamosActivos'));
     }
     public function historial()
@@ -25,6 +26,7 @@ class PrestamoController extends Controller
             ->whereNotNull('fecha_devuelto')
             ->orderBy('fecha_devuelto', 'desc')
             ->get();
+        //Tendre que poner lo de paginate(10)
         return view('prestamos.historial', compact('prestamosPasados'));
     }
 

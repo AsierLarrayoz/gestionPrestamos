@@ -21,7 +21,7 @@ class AlmacenController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'almacen' => 'required|string|max:255',
+            'almacen' => 'required|string|max:255|unique:almacenes,almacen',
         ]);
 
         Almacen::create($request->all());
@@ -38,7 +38,7 @@ class AlmacenController extends Controller
     public function update(Request $request, string $id)
     {
         $request->validate([
-            'almacen' => 'required|string|max:255',
+            'almacen' => 'required|string|max:255|unique:almacenes,almacen,' . $id,
         ]);
 
         $almacen = Almacen::findOrFail($id);

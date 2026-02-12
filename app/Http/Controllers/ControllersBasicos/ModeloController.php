@@ -1,9 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\ControllersBasicos;
 
-use App\Models\Modelo;
-use App\Models\Marca;
+use App\Http\Controllers\Controller;
+
+use App\Models\ModelosBasicos\Modelo;
+use App\Models\ModelosBasicos\Marca;
 use Illuminate\Http\Request;
 
 class ModeloController extends Controller

@@ -1,8 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\ControllersBasicos;
 
-use App\Models\Nivel;
+use App\Http\Controllers\Controller;
+
+use App\Models\ModelosBasicos\Nivel;
 use Illuminate\Http\Request;
 
 class NivelController extends Controller

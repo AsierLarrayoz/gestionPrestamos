@@ -1,8 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\ControllersBasicos;
 
-use App\Models\Tipo;
+use App\Http\Controllers\Controller;
+
+use App\Models\ModelosBasicos\Tipo;
 use Illuminate\Http\Request;
 
 class TipoController extends Controller

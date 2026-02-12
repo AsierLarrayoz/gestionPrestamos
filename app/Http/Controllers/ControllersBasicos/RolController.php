@@ -1,8 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\ControllersBasicos;
 
-use App\Models\Rol;
+use App\Http\Controllers\Controller;
+
+use App\Models\ModelosBasicos\Rol;
 use Illuminate\Http\Request;
 
 

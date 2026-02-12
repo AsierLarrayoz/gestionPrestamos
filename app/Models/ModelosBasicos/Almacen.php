@@ -1,6 +1,13 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\ModelosBasicos;
+
+use App\Models\Activo;
+use App\Models\Almacen_activo;
+use App\Models\Prestamo;
+
+
+
 
 use Illuminate\Database\Eloquent\Model;
 

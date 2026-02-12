@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\ModelosBasicos;
+
+use App\Models\Incidencia;
 
 use Illuminate\Database\Eloquent\Model;
 

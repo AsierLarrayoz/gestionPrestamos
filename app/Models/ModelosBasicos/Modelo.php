@@ -1,7 +1,9 @@
 <?php
 
-namespace App\Models;
+namespace App\Models\ModelosBasicos;
 
+use App\Models\ModelosBasicos\Marca;
+use App\Models\Activo;
 use Illuminate\Database\Eloquent\Model;
 
 class Modelo extends Model

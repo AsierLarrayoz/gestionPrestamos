@@ -12,6 +12,16 @@ class Almacen extends Model
     ];
     public function activos()
     {
-        return $this->hasMany(Activo::class);
+        return $this->belongsToMany(Activo::class, 'almacen_activos')
+            ->withPivot('cantidad')
+            ->withTimestamps();
+    }
+    public function almacen_activos()
+    {
+        return $this->hasMany(Almacen_activo::class);
+    }
+    public function prestamos()
+    {
+        return $this->hasMany(Prestamo::class);
     }
 }

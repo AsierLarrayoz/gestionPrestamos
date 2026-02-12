@@ -8,7 +8,7 @@ class Activo extends Model
 {
     protected $fillable = [
         'serial_number',
-        'observaciones',
+        //'observaciones',
         'cantidad',
         'is_serialized',
         'modelo_id',
@@ -32,6 +32,16 @@ class Activo extends Model
     public function prestamos()
     {
         return $this->hasMany(Prestamo::class);
+    }
+    public function almacenes()
+    {
+        return $this->belongsToMany(Almacen::class, 'almacen_activos')
+            ->withPivot('cantidad')
+            ->withTimestamps();
+    }
+    public function almacen_activos()
+    {
+        return $this->hasMany(Almacen_activo::class);
     }
     public function incidencias()
     {

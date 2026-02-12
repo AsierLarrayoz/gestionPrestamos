@@ -2,56 +2,88 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use App\Models\Reserva;
+use App\Models\Tipo;
+use App\Models\Activo;
+use Carbon\Carbon;
+
+use function Symfony\Component\Clock\now;
 
 class ReservaController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function indexReservasActivas()
     {
-        //
-    }
+        $reservasActivas = Reserva::with(['activo', 'usuario'])
+            ->where('fecha_fin', '>=', Carbon::now())
+            ->orderBy('fecha_inicio', 'asc')
+            ->get();
 
-    /**
-     * Show the form for creating a new resource.
-     */
+        return view('reservas.index', compact('reservasActivas'));
+    }
+    public function indexReservasInactivas()
+    {
+        $reservasInactivas = Reserva::with(['activo', 'usuario'])
+            ->where('fecha_fin', '<', Carbon::now())
+            ->orderBy('fecha_fin', 'desc')
+            ->get();
+
+        return view('reservas.index', compact('reservasInactivas'));
+    }
     public function create()
     {
-        //
+        $tipos = Tipo::all();
+        $activos = Activo::all();
+        return view('reservas.create', compact('tipos', 'activos'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'activo_id' => 'required|exists:activos,id',
+            'fecha_inicio' => 'required|date|after_or_equal:today',
+            'fecha_fin' => 'required|date|after:fecha_inicio',
+            'cantidad' => 'required|integer|min:1',
+        ]);
+
+        Reserva::create([
+            'activo_id' => $request->activo_id,
+            'usuario_id' => Auth::id(),
+            'fecha_inicio' => $request->fecha_inicio,
+            'fecha_fin' => $request->fecha_fin,
+            'cantidad' => $request->cantidad,
+        ]);
+
+        return redirect()->route('reservas.index_activas')->with('success', 'Reserva creada exitosamente.');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(string $id)
     {
-        //
+        $reserva = Reserva::with(['activo', 'usuario'])->findOrFail($id);
+        return view('reservas.show', compact('reserva'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(string $id)
     {
-        //
+        $reserva = Reserva::findOrFail($id);
+        $activos = Activo::all();
+        return view('reservas.edit', compact('reserva', 'activos'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, string $id)
     {
-        //
+        $request->validate([
+            'activo_id' => 'required|exists:activos,id',
+            'fecha_inicio' => 'required|date',
+            'fecha_fin' => 'required|date|after:fecha_inicio',
+            'cantidad' => 'required|integer|min:1',
+        ]);
+
+        $reserva = Reserva::findOrFail($id);
+        $reserva->update($request->all());
+
+        return redirect()->route('reservas.index_activas')->with('success', 'Reserva actualizada.');
     }
 
     /**
@@ -59,6 +91,9 @@ class ReservaController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $reserva = Reserva::findOrFail($id);
+        $reserva->delete();
+
+        return redirect()->route('reservas.index_activas')->with('success', 'Reserva eliminada.');
     }
 }

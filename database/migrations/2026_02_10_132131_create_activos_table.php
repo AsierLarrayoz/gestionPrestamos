@@ -16,13 +16,12 @@ return new class extends Migration
             $table->string('serial_number')->unique()->nullable();
             $table->uuid('uuid')->unique();
             $table->string('rfid_code')->nullable()->unique();
-            $table->text('observaciones')->nullable();
+            //$table->text('observaciones')->nullable();
             $table->integer('cantidad');
             $table->boolean('is_serialized')->default(true);
             $table->foreignId('modelo_id')->constrained('modelos');
             $table->foreignId('salud_id')->constrained('salud');
             $table->foreignId('tipo_id')->constrained('tipos');
-            $table->foreignId('almacen_id')->constrained('almacenes', 'id');
             $table->timestamps();
         });
     }

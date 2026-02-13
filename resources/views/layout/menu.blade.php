@@ -110,6 +110,12 @@
                                 <span class="menu-title">Gestionar almacenes</span>
                             </a>
                         </div>
+                        <div class="menu-item">
+                            <a class="menu-link" href="{{ route('activos.index') }}">
+                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                <span class="menu-title">Gestionar activos</span>
+                            </a>
+                        </div>
                     </div>
                 </div>
                 @endif

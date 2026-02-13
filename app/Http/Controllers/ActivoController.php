@@ -9,15 +9,13 @@ use App\Models\ModelosBasicos\Marca;
 use App\Models\ModelosBasicos\Salud;
 use App\Models\ModelosBasicos\Tipo;
 use App\Models\ModelosBasicos\Modelo;
-use App\Models\ModelosBasicos\Nivel;
 use App\Models\ModelosBasicos\Almacen;
 
 class ActivoController extends Controller
 {
     public function index()
     {
-        $activos = Activo::with(['modelo.marca', 'tipo', 'salud', 'nivel'])->get();
-        //Tendre que poner lo de paginate(10)
+        $activos = Activo::with(['modelo.marca', 'tipo', 'salud'])->get();
         return view('activos.index', compact('activos'));
     }
 
@@ -26,10 +24,9 @@ class ActivoController extends Controller
         $marcas = Marca::all();
         $salud = Salud::all();
         $tipos = Tipo::all();
-        $niveles = Nivel::all();
         $almacenes = Almacen::all();
         //Tendre que poner lo de paginate(10)
-        return view('activos.create', compact('marcas', 'salud', 'tipos', 'niveles', 'almacenes'));
+        return view('activos.create', compact('marcas', 'salud', 'tipos', 'almacenes'));
     }
 
     public function getModelosByMarca($id)
@@ -42,20 +39,30 @@ class ActivoController extends Controller
     {
         $request->validate([
             'serial_number' => 'nullable|string|max:255|unique:activos,serial_number',
-            'rfid' => 'nullable|string|max:255|unique:activos,rfid',
+            'rfid_code' => 'nullable|string|max:255|unique:activos,rfid_code',
             'cantidad' => 'required|integer|min:1',
             'almacen_id' => 'required|exists:almacenes,id',
             'marca_id' => 'nullable|exists:marcas,id',
             'modelo_id' => 'nullable|exists:modelos,id',
             'tipo_id' => 'required|exists:tipos,id',
-            'nivel_id' => 'required|exists:niveles,id',
             'salud_id' => 'required|exists:salud,id',
         ]);
+        if (!empty($request->serial_number)) {
+            $is_serialized = true;
+            $cantidadFinal = 1;
+        } else {
+            $is_serialized = false;
+            $cantidadFinal = $request->cantidad;
+        }
 
-        $datosActivo = $request->except(['almacen_id']);
+        $datosActivo = $request->except(['almacen_id', 'cantidad']);
         $uuid = Str::uuid()->toString();
 
-        $datosGuardar = array_merge($datosActivo, ['uuid' => $uuid]);
+        $datosGuardar = array_merge($datosActivo, [
+            'uuid'          => $uuid,
+            'is_serialized' => $is_serialized,
+            'cantidad'      => $cantidadFinal
+        ]);
 
         $activo = Activo::create($datosGuardar);
 
@@ -78,12 +85,11 @@ class ActivoController extends Controller
         $marcas = Marca::all();
         $salud = Salud::all();
         $tipos = Tipo::all();
-        $niveles = Nivel::all();
         $almacenes = Almacen::all();
         $marcaId = $activo->modelo?->marca_id;
         $modelos = $marcaId ? Modelo::where('marca_id', $marcaId)->get() : collect();
 
-        return view('activos.edit', compact('activo', 'marcas', 'modelos', 'tipos', 'niveles', 'salud'));
+        return view('activos.edit', compact('activo', 'marcas', 'modelos', 'tipos', 'salud', 'almacenes'));
     }
 
     public function update(Request $request, string $id)
@@ -91,40 +97,37 @@ class ActivoController extends Controller
         $activo = Activo::findOrFail($id);
 
         $validatedData = $request->validate([
-            'serial_number' => 'nullable|string|max:255|unique:activos,serial_number,' . $activo->id,
-            'rfid'  => 'nullable|string|max:255|unique:activos,rfid,' . $activo->id,
-            'modelo_id' => 'nullable|exists:modelos,id',
-            'tipo_id' => 'required|exists:tipos,id',
-            'nivel_id' => 'required|exists:niveles,id',
-            'salud_id' => 'required|exists:salud,id',
-            'cantidad' => 'required|integer|min:0',
-            'almacen_id' => 'required|exists:almacenes,id', // Almacén donde se aplicará el cambio
+            'rfid_code'     => 'nullable|string|max:255|unique:activos,rfid_code,' . $activo->id,
+            'modelo_id'     => 'nullable|exists:modelos,id',
+            'tipo_id'       => 'required|exists:tipos,id',
+            'salud_id'      => 'required|exists:salud,id',
+            'cantidad'      => 'required|integer|min:0',
+            'almacen_id'    => 'required|exists:almacenes,id',
         ]);
-
-        $cantidadAnterior = $activo->cantidad;
-        $nuevaCantidad = $request->cantidad;
-        $diferencia = $cantidadAnterior + $nuevaCantidad;
-        $activo->update($validatedData);
-
-        if ($diferencia != 0) {
-            $almacenDestino = $activo->almacenes()->where('almacen_id', $request->almacen_id)->first();
-            if ($almacenDestino) {
-                if ($almacenDestino->pivot->cantidad + $diferencia >= 0) {
-                    $activo->almacenes()->updateExistingPivot($request->almacen_id, [
-                        'cantidad' => $almacenDestino->pivot->cantidad
-                    ]);
-                } else {
-                    return back()->with('error', 'No hay tantas existencias para retirar');
-                }
-            } else {
-                //Si en el almacen no hay nada solo se pueden añadir
-                if ($diferencia > 0) {
-                    $activo->almacenes()->attach($request->almacen_id, ['cantidad' => $diferencia]);
-                } else {
-                    return back()->with('error', 'No puedes quitar cosas donde no hay');
-                }
-            }
+        if ($activo->serial_number) {
+            $validatedData['serial_number'] = $activo->serial_number;
         }
+
+        $nuevaCantAlmacen = !empty($request->serial_number) ? 1 : $request->cantidad;
+
+        $almacenDestino = $activo->almacenes()->where('almacen_id', $request->almacen_id)->first();
+
+        if ($almacenDestino) {
+            $activo->almacenes()->updateExistingPivot($request->almacen_id, [
+                'cantidad' => $nuevaCantAlmacen
+            ]);
+        } else {
+            $activo->almacenes()->attach($request->almacen_id, ['cantidad' => $nuevaCantAlmacen]);
+        }
+
+        $activo->load('almacenes');
+        $totalRealGlobal = $activo->almacenes->sum('pivot.cantidad');
+
+        $activo->update(array_merge($validatedData, [
+            'cantidad'      => $totalRealGlobal,
+            'is_serialized' => !empty($request->serial_number)
+        ]));
+
         return redirect()->route('activos.index')->with('success', 'Activo y stock actualizados correctamente.');
     }
 
@@ -144,5 +147,37 @@ class ActivoController extends Controller
         $activo->delete();
 
         return redirect()->route('activos.index')->with('success', 'Activo eliminado exitosamente.');
+    }
+    // app/Http/Controllers/ActivoController.php
+
+    public function quickStoreMarca(Request $request)
+    {
+        $request->validate(['marca' => 'required|string|unique:marcas,marca']);
+        $marca = \App\Models\ModelosBasicos\Marca::create($request->all());
+        return response()->json($marca);
+    }
+
+    public function quickStoreModelo(Request $request)
+    {
+        $request->validate([
+            'modelo' => 'required|string',
+            'marca_id' => 'required|exists:marcas,id'
+        ]);
+        $modelo = \App\Models\ModelosBasicos\Modelo::create($request->all());
+        return response()->json($modelo);
+    }
+
+    public function quickStoreTipo(Request $request)
+    {
+        $request->validate(['tipo' => 'required|string|unique:tipos,tipo']);
+        $tipo = \App\Models\ModelosBasicos\Tipo::create($request->all());
+        return response()->json($tipo);
+    }
+
+    public function quickStoreSalud(Request $request)
+    {
+        $request->validate(['salud' => 'required|string|unique:salud,salud']);
+        $salud = \App\Models\ModelosBasicos\Salud::create($request->all());
+        return response()->json($salud);
     }
 }

@@ -6,7 +6,7 @@ use App\Models\User;
 use App\Models\ModelosBasicos\Rol;
 
 // Importamos todos los controladores
-use App\Http\Controllers\HomeController; // <--- ¡IMPORTANTE añadir este!
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ActivoController;
 use App\Http\Controllers\PrestamoController;
 use App\Http\Controllers\IncidenciaController;
@@ -54,6 +54,14 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('niveles', NivelController::class);
         Route::resource('salud', SaludController::class);
         Route::resource('estados', EstadoController::class);
+        // Rutas de creación rápida (AJAX) para los modales
+        Route::post('/marcas/quick-store', [ActivoController::class, 'quickStoreMarca'])->name('marcas.quickStore');
+        Route::post('/modelos/quick-store', [ActivoController::class, 'quickStoreModelo'])->name('modelos.quickStore');
+        Route::post('/tipos/quick-store', [ActivoController::class, 'quickStoreTipo'])->name('tipos.quickStore');
+        Route::post('/salud/quick-store', [ActivoController::class, 'quickStoreSalud'])->name('salud.quickStore');
+
+        // Ruta para cargar modelos según marca
+        Route::get('/get-modelos/{id}', [ActivoController::class, 'getModelosByMarca'])->name('activos.getModelos');
     });
     Route::get('activos/modelos/{id}', [ActivoController::class, 'getModelosByMarca']);
     Route::resource('activos', ActivoController::class);
@@ -70,14 +78,14 @@ Route::get('/seleccion-perfil', function () {
 
 /*Route::get('/instalar-admin', function () {
     // 1. Creamos el rol de Administrador si no existe
-    //$rol = Rol::firstOrCreate(['rol' => 'Administrador']);
-    $rol = Rol::firstOrCreate(['rol' => 'Trabajador']);
+    $rol = Rol::firstOrCreate(['rol' => 'Administrador']);
+    //$rol = Rol::firstOrCreate(['rol' => 'Trabajador']);
 
     // 2. Creamos tu usuario vinculado a ese rol
     $user = User::firstOrCreate(
-        ['email' => 'user@user.com'], // Busca por email
+        ['email' => 'admin@admin.com'], // Busca por email
         [
-            'name'     => 'Asier NoAdmin',
+            'name'     => 'Asier ',
             'password' => Hash::make('12345678'), // Tu contraseña
             'rol_id'   => $rol->id
         ]

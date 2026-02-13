@@ -29,6 +29,16 @@ class AlmacenController extends Controller
 
         return redirect()->route('almacenes.index')->with('success', 'Almacén creado exitosamente.');
     }
+    public function show(string $id)
+    {
+        $almacen = Almacen::with([
+            'activos.modelo.marca',
+            'activos.tipo',
+            'activos.salud'
+        ])->findOrFail($id);
+
+        return view('almacenes.show', compact('almacen'));
+    }
 
     public function edit(string $id)
     {

@@ -3,6 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\ModelosBasicos\Almacen;
+use App\Models\ModelosBasicos\Tipo;
+use App\Models\ModelosBasicos\Modelo;
+use App\Models\ModelosBasicos\Salud;
+
 
 class Activo extends Model
 {

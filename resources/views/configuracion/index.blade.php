@@ -23,7 +23,7 @@
             <table class="table align-middle table-row-dashed fs-6 gy-5" id="kt_table_users">
                 <thead>
                     <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0">
-                        <th class="min-w-50px">ID</th>
+                        <!--<th class="min-w-50px">ID</th>-->
                         <th class="min-w-125px">Usuario</th>
                         <th class="min-w-125px">Email</th>
                         <th class="min-w-125px">Rol</th>
@@ -33,7 +33,7 @@
                 <tbody class="text-gray-600 fw-semibold">
                     @foreach($usuarios as $user)
                     <tr>
-                        <td>{{ $user->id }}</td>
+                        <!--<td>{{ $user->id }}</td>-->
                         <td class="d-flex align-items-center">
                             <div class="symbol symbol-circle symbol-50px overflow-hidden me-3">
                                 <div class="symbol-label fs-3 bg-light-danger text-danger">
@@ -105,19 +105,36 @@
     }
 </script>
 <script>
-    //Busqueda de usuarios
+    //Buscar susuarios
     $(document).ready(function() {
-        // Inicializamos DataTable sobre la tabla
+        // Función para calcular cuántas filas mostrar según el tamaño
+        function obtenerPageLength() {
+            var ancho = window.innerWidth;
+            if (ancho < 768) return 5; // Móvil: 5 filas
+            if (ancho < 1200) return 8; // Tablet: 8 filas
+            return 12; // Escritorio: 12 filas
+        }
+
         var table = $('#kt_table_users').DataTable({
-            "info": false, // Quita el texto de "Mostrando X de Y"
-            'order': [], // Quita el orden inicial automático
-            'pageLength': 5, //Paginacion de usuarios
-            "lengthChange": false // Quita el selector de cantidad de registros
+            "info": false,
+            "order": [],
+            "pageLength": obtenerPageLength(), // Aplicamos el cálculo inicial
+            "lengthChange": false,
+            "pagingType": "simple_numbers", // Esto hace que en móvil se vea más limpio
+            "responsive": true // Activa el modo responsivo de Metronic
         });
 
-        // Conectamos tu input de búsqueda con la tabla
+        // Filtro de búsqueda
         $('[data-kt-user-table-filter="search"]').on('keyup', function() {
             table.search(this.value).draw();
+        });
+
+        // Opcional: Re-ajustar si el usuario gira la tablet o cambia el tamaño de ventana
+        $(window).on('resize', function() {
+            var nuevoLargo = obtenerPageLength();
+            if (table.page.len() !== nuevoLargo) {
+                table.page.len(nuevoLargo).draw();
+            }
         });
     });
 </script>

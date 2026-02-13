@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Models\Prestamo;
 use App\Models\Activo;
-use App\Models\Almacen;
+use App\Models\ModelosBasicos\Almacen;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 

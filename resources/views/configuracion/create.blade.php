@@ -84,4 +84,5 @@
         </form>
     </div>
 </div>
+@include('activos.modals')
 @endsection

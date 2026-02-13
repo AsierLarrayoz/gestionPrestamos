@@ -34,27 +34,6 @@
                 </div>
                 <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
                     <span class="menu-link">
-                        <span class="menu-icon"><i class="ki-outline ki-user fs-2"></i></span>
-                        <span class="menu-title">Usuarios</span>
-                        <span class="menu-arrow"></span>
-                    </span>
-                    <div class="menu-sub menu-sub-accordion">
-                        <div class="menu-item">
-                            <a class="menu-link" href="/paginaUsuarios">
-                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                                <span class="menu-title">Usuarios</span>
-                            </a>
-                        </div>
-                        <div class="menu-item">
-                            <a class="menu-link" href="/paginaRoles">
-                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                                <span class="menu-title">Roles</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
-                    <span class="menu-link">
                         <span class="menu-icon"><i class="ki-outline ki-book-open fs-2"></i></span>
                         <span class="menu-title">Tareas</span>
                         <span class="menu-arrow"></span>
@@ -110,6 +89,8 @@
                         </div>
                     </div>
                 </div>
+                <!-- ESTA OPCION DEL MENU QUE SOLO SALGA AL ALDMIN-->
+                @if(Auth::check() && Auth::user()->rol->rol === 'Administrador')
                 <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
                     <span class="menu-link">
                         <span class="menu-icon"><i class="ki-outline ki-lock fs-2"></i></span>
@@ -118,19 +99,20 @@
                     </span>
                     <div class="menu-sub menu-sub-accordion">
                         <div class="menu-item">
-                            <a class="menu-link" href="/sa/licencias">
+                            <a class="menu-link" href="{{ route('configuracion.index') }}">
                                 <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                                <span class="menu-title">Licencias</span>
+                                <span class="menu-title">Gestionar usuarios</span>
                             </a>
                         </div>
                         <div class="menu-item">
-                            <a class="menu-link" href="/sa/centros">
+                            <a class="menu-link" href="{{ route('almacenes.index') }}">
                                 <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                                <span class="menu-title">Centros</span>
+                                <span class="menu-title">Gestionar almacenes</span>
                             </a>
                         </div>
                     </div>
                 </div>
+                @endif
             </div>
         </div>
     </div>

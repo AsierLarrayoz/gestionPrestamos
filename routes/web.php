@@ -10,81 +10,81 @@ use App\Http\Controllers\HomeController; // <--- ¡IMPORTANTE añadir este!
 use App\Http\Controllers\ActivoController;
 use App\Http\Controllers\PrestamoController;
 use App\Http\Controllers\IncidenciaController;
-use App\Http\Controllers\AlmacenController;
-use App\Http\Controllers\MarcaController;
-use App\Http\Controllers\ModeloController;
-use App\Http\Controllers\TipoController;
-use App\Http\Controllers\NivelController;
-use App\Http\Controllers\SaludController;
-use App\Http\Controllers\EstadoController;
-use App\Http\Controllers\RolController;
+use App\Http\Controllers\ControllersBasicos\AlmacenController;
+use App\Http\Controllers\ControllersBasicos\MarcaController;
+use App\Http\Controllers\ControllersBasicos\ModeloController;
+use App\Http\Controllers\ControllersBasicos\TipoController;
+use App\Http\Controllers\ControllersBasicos\NivelController;
+use App\Http\Controllers\ControllersBasicos\SaludController;
+use App\Http\Controllers\ControllersBasicos\EstadoController;
+use App\Http\Controllers\ControllersBasicos\RolController;
 use App\Http\Controllers\ConfiguracionController;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Http\Request;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-*/
+Route::get('/', function (Request $request) {
+    if (Auth::check()) {
+        return redirect()->route('dashboard');
+    }
 
-// Redirigir la raíz al login
-Route::get('/', function () {
-    return redirect()->route('login');
+    // Buscamos por nombre si hay un término, si no, traemos todos
+    $usuarios = User::with('rol')
+        ->when($request->buscar, function ($query, $buscar) {
+            return $query->where('name', 'LIKE', "%{$buscar}%");
+        })
+        ->paginate(4)
+        ->withQueryString(); // Mantiene el filtro al cambiar de página
+
+    return view('auth.select_profile', compact('usuarios'));
 });
 
 // Grupo protegido: Solo usuarios logueados pueden entrar aquí
 Route::middleware(['auth'])->group(function () {
 
-    // --- PANEL PRINCIPAL (Estadísticas en welcome) ---
     // Cambiamos la función anónima por el HomeController para que cargue los $stats
     Route::get('/dashboard', [HomeController::class, 'index'])->name('dashboard');
 
-    // Si quieres que la ruta /home también funcione, puedes dejarla así:
-    Route::get('/home', [HomeController::class, 'index'])->name('home');
-
-    // --- ACTIVOS ---
+    Route::middleware(['admin'])->group(function () {
+        Route::resource('usuarios', ConfiguracionController::class)->names('configuracion');
+        Route::resource('roles', RolController::class);
+        Route::resource('almacenes', AlmacenController::class);
+        Route::resource('marcas', MarcaController::class);
+        Route::resource('modelos', ModeloController::class);
+        Route::resource('tipos', TipoController::class);
+        Route::resource('niveles', NivelController::class);
+        Route::resource('salud', SaludController::class);
+        Route::resource('estados', EstadoController::class);
+    });
     Route::get('activos/modelos/{id}', [ActivoController::class, 'getModelosByMarca']);
     Route::resource('activos', ActivoController::class);
-
-    // --- PRÉSTAMOS ---
     Route::get('prestamos/historial', [PrestamoController::class, 'historial'])->name('prestamos.historial');
     Route::resource('prestamos', PrestamoController::class)->except(['show', 'edit', 'update', 'destroy']);
-
-    // --- INCIDENCIAS ---
     Route::resource('incidencias', IncidenciaController::class);
-
-    // --- GESTIÓN DE ALMACENES ---
-    Route::resource('almacenes', AlmacenController::class);
-
-    // --- CONFIGURACIÓN (Usuarios y Roles) ---
-    Route::resource('usuarios', ConfiguracionController::class)->names('configuracion');
-    Route::resource('roles', RolController::class);
-
-    // --- TABLAS MAESTRAS ---
-    Route::resource('marcas', MarcaController::class);
-    Route::resource('modelos', ModeloController::class);
-    Route::resource('tipos', TipoController::class);
-    Route::resource('niveles', NivelController::class);
-    Route::resource('salud', SaludController::class);
-    Route::resource('estados', EstadoController::class);
 });
-Route::get('/instalar-admin', function () {
+
+Route::get('/seleccion-perfil', function () {
+    // Obtenemos los usuarios y sus roles para mostrarlos
+    $usuarios = \App\Models\User::with('rol')->get();
+    return view('auth.select_profile', compact('usuarios'));
+})->name('profile.select');
+
+/*Route::get('/instalar-admin', function () {
     // 1. Creamos el rol de Administrador si no existe
-    $rol = Rol::firstOrCreate(['rol' => 'Administrador']);
-    Rol::firstOrCreate(['rol' => 'Trabajador']);
+    //$rol = Rol::firstOrCreate(['rol' => 'Administrador']);
+    $rol = Rol::firstOrCreate(['rol' => 'Trabajador']);
 
     // 2. Creamos tu usuario vinculado a ese rol
     $user = User::firstOrCreate(
-        ['email' => 'admin@admin.com'], // Busca por email
+        ['email' => 'user@user.com'], // Busca por email
         [
-            'name'     => 'Asier Admin',
+            'name'     => 'Asier NoAdmin',
             'password' => Hash::make('12345678'), // Tu contraseña
             'rol_id'   => $rol->id
         ]
     );
 
     return "Usuario creado correctamente. Email: admin@admin.com | Pass: 12345678. YA PUEDES BORRAR ESTA RUTA.";
-});
+});*/
 
 // Rutas de autenticación de Breeze (Login, Password Reset, etc.)
 require __DIR__ . '/auth.php';

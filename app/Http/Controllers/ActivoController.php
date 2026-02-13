@@ -5,12 +5,12 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Models\Activo;
-use App\Models\Marca;
-use App\Models\Salud;
-use App\Models\Tipo;
-use App\Models\Modelo;
-use App\Models\Nivel;
-use App\Models\Almacen;
+use App\Models\ModelosBasicos\Marca;
+use App\Models\ModelosBasicos\Salud;
+use App\Models\ModelosBasicos\Tipo;
+use App\Models\ModelosBasicos\Modelo;
+use App\Models\ModelosBasicos\Nivel;
+use App\Models\ModelosBasicos\Almacen;
 
 class ActivoController extends Controller
 {

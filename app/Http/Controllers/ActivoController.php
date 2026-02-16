@@ -94,7 +94,6 @@ class ActivoController extends Controller
 
     public function update(Request $request, string $id)
     {
-        //dd($request->all());
         $activo = Activo::findOrFail($id);
 
         $validatedData = $request->validate([
@@ -102,29 +101,26 @@ class ActivoController extends Controller
             'modelo_id'       => 'nullable|exists:modelos,id',
             'tipo_id'         => 'required|exists:tipos,id',
             'salud_id'        => 'required|exists:salud,id',
-            'stock_almacenes' => 'required|array',
+            'stock_almacenes' => $activo->serial_number ? 'nullable|array' : 'required|array',
+            'nuevo_almacen_id' => $activo->serial_number ? 'required|exists:almacenes,id' : 'nullable',
         ]);
 
-        $distribucion = $request->input('stock_almacenes', []);
         $datosPivot = [];
         $totalRealGlobal = 0;
 
-        foreach ($distribucion as $almacenId => $cant) {
-            $cant = (int)$cant;
-
-
-            if ($activo->serial_number && $cant > 1) {
-                $cant = 1;
-            }
-
-            if ($cant > 0) {
-                $datosPivot[$almacenId] = ['cantidad' => $cant];
-                $totalRealGlobal += $cant;
-            }
-        }
-
-        if ($activo->serial_number && $totalRealGlobal > 1) {
+        if ($activo->serial_number) {
+            $almacenDestino = $request->input('nuevo_almacen_id');
+            $datosPivot[$almacenDestino] = ['cantidad' => 1];
             $totalRealGlobal = 1;
+        } else {
+            $distribucion = $request->input('stock_almacenes', []);
+            foreach ($distribucion as $almacenId => $cant) {
+                $cant = (int)$cant;
+                if ($cant > 0) {
+                    $datosPivot[$almacenId] = ['cantidad' => $cant];
+                    $totalRealGlobal += $cant;
+                }
+            }
         }
 
         $activo->almacenes()->sync($datosPivot);

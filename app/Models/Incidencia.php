@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\ModelosBasicos\Estado;
+use App\Models\ModelosBasicos\Nivel;
+
 
 class Incidencia extends Model
 {

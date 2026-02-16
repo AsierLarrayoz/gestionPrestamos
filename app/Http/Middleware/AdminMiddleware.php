@@ -10,15 +10,28 @@ use Symfony\Component\HttpFoundation\Response;
 class AdminMiddleware
 {
     /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * Maneja la petición entrante.
+     * * @param $modulo - El nombre del permiso que queremos revisar
      */
-    public function handle(Request $request, Closure $next): Response
+    // Añadimos "= null" para que no sea obligatorio y no de error
+    public function handle(Request $request, Closure $next, string $modulo = null): Response
     {
-        if (!Auth::check() || Auth::user()->rol->rol !== 'Administrador') {
-            return redirect('/home')->with('error', 'No tienes permisos para acceder a esta sección.');
+        if (!Auth::check()) {
+            return redirect('/login');
         }
+
+        // Si entramos a una ruta protegida sin especificar el módulo, denegamos por seguridad
+        if (!$modulo) {
+            return redirect('/dashboard')->with('error', 'Error de configuración de seguridad.');
+        }
+
+        $permisos = Auth::user()->permisos;
+        $campoPermiso = "permiso_" . $modulo;
+
+        if (!$permisos || !$permisos->$campoPermiso) {
+            return redirect('/dashboard')->with('error', "No tienes acceso al módulo de " . ucfirst($modulo));
+        }
+
         return $next($request);
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\ModelosBasicos\Almacen;
 
 class Prestamo extends Model
 {
@@ -13,7 +14,14 @@ class Prestamo extends Model
         'cantidad_devuelta',
         'descripcion',
         'activo_id',
-        'user_id'
+        'user_id',
+        'almacen_prestado_id',
+        'almacen_devuelto_id'
+
+    ];
+    protected $casts = [
+        'fecha_prestado' => 'datetime',
+        'fecha_devuelto' => 'datetime',
     ];
     public function activo()
     {
@@ -26,5 +34,13 @@ class Prestamo extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+    public function almacenPrestado()
+    {
+        return $this->belongsTo(Almacen::class, 'almacen_prestado_id');
+    }
+    public function almacenDevuelto()
+    {
+        return $this->belongsTo(Almacen::class, 'almacen_devuelto_id');
     }
 }

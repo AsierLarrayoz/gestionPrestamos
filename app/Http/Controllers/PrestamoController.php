@@ -14,19 +14,23 @@ class PrestamoController extends Controller
 {
     public function index()
     {
-        $prestamosActivos = Prestamo::with(['activo.modelo', 'usuario'])
+        $prestamosActivos = Prestamo::with([
+            'activo.modelo',
+            'activo.modelo.marca',
+            'activo.tipo',
+            'user',
+            'almacenPrestado'
+        ])
             ->whereNull('fecha_devuelto')
             ->get();
-        //Tendre que poner lo de paginate(10)
         return view('prestamos.index', compact('prestamosActivos'));
     }
     public function historial()
     {
-        $prestamosPasados = Prestamo::with(['activo.modelo', 'usuario'])
+        $prestamosPasados = Prestamo::with(['activo.modelo', 'user'])
             ->whereNotNull('fecha_devuelto')
             ->orderBy('fecha_devuelto', 'desc')
             ->get();
-        //Tendre que poner lo de paginate(10)
         return view('prestamos.historial', compact('prestamosPasados'));
     }
 
@@ -94,8 +98,9 @@ class PrestamoController extends Controller
         Prestamo::create([
             'fecha_prestado' => Carbon::now(),
             'activo_id' => $activo->id,
-            'usuario_id' => Auth::id(),
+            'user_id' => Auth::id(),
             'almacen_prestado_id' => $almacenActual,
+            'almacen_devuelto_id' => null,
             'cantidad_prestada' => $cantidadAccion,
             'descripcion' => $request->descripcion
         ]);

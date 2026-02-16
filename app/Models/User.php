@@ -6,7 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use App\Models\ModelosBasicos\Rol;
+use App\Models\ModelosBasicos\Permiso;
 use \App\Models\Prestamo;
 
 class User extends Authenticatable
@@ -23,11 +23,11 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'rol_id'
+        'permisos_id'
     ];
-    public function rol()
+    public function permisos()
     {
-        return $this->belongsTo(Rol::class);
+        return $this->belongsTo(Permiso::class, 'permisos_id');
     }
     public function prestamos()
     {

@@ -6,11 +6,15 @@ use App\Models\User;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Rol extends Model
+class Permiso extends Model
 {
-    protected $table = 'roles';
+    protected $table = 'permisos';
     protected $fillable = [
-        'rol'
+        'permiso_usuarios',
+        'permiso_activos',
+        'permiso_almacenes',
+        'permiso_incidencias',
+        'permiso_prestamos'
     ];
     public function users()
     {

@@ -106,15 +106,36 @@
                 </div>
             </div>
 
-            <div class="card bg-light-secondary border-dashed p-6 mb-8">
+            <div class="card {{ $activo->serial_number ? 'bg-light-primary' : 'bg-light-secondary' }} border-dashed p-6 mb-8">
                 <div class="d-flex align-items-center mb-5">
-                    <i class="ki-outline ki-delivery-3 fs-2tx text-primary me-4"></i>
+                    <i class="ki-outline {{ $activo->serial_number ? 'ki-geolocation' : 'ki-delivery-3' }} fs-2tx text-primary me-4"></i>
                     <div>
-                        <h4 class="text-gray-900 fw-bold">Distribución de Stock por Almacén</h4>
-                        <p class="fs-6 text-gray-600">Modifica las cantidades directamente en cada sede. El total global se recalculará automáticamente.</p>
+                        <h4 class="text-gray-900 fw-bold">
+                            {{ $activo->serial_number ? 'Ubicación del Activo' : 'Distribución de Stock por Almacén' }}
+                        </h4>
+                        <p class="fs-6 text-gray-600">
+                            {{ $activo->serial_number 
+                    ? 'Este es un activo único (S/N). Selecciona el almacén donde se va a mover.' 
+                    : 'Modifica las cantidades en cada almacén. El total global se recalculará automáticamente.' }}
+                        </p>
                     </div>
                 </div>
 
+                @if($activo->serial_number)
+                <div class="fv-row">
+                    <label class="required fs-6 fw-semibold mb-2">Almacén Actual</label>
+                    <select name="nuevo_almacen_id" class="form-select form-select-solid" data-control="select2">
+                        @foreach($almacenes as $almacen)
+                        @php
+                        $estaAqui = $activo->almacenes->contains('id', $almacen->id);
+                        @endphp
+                        <option value="{{ $almacen->id }}" {{ $estaAqui ? 'selected' : '' }}>
+                            {{ $almacen->almacen }}
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
+                @else
                 <div class="table-responsive">
                     <table class="table table-row-bordered table-row-gray-300 align-middle">
                         <thead>
@@ -127,30 +148,23 @@
                         <tbody>
                             @foreach($almacenes as $almacen)
                             @php
-                            // Buscamos si el activo ya está en este almacén
                             $relacion = $activo->almacenes->where('id', $almacen->id)->first();
                             $cantidadActual = $relacion ? $relacion->pivot->cantidad : 0;
                             @endphp
                             <tr>
-                                <td>
-                                    <span class="text-gray-800 fw-bold">{{ $almacen->almacen }}</span>
-                                </td>
-                                <td class="text-center">
-                                    <span class="badge badge-light fs-7">{{ $cantidadActual }} uds</span>
-                                </td>
+                                <td><span class="text-gray-800 fw-bold">{{ $almacen->almacen }}</span></td>
+                                <td class="text-center"><span class="badge badge-light fs-7">{{ $cantidadActual }} uds</span></td>
                                 <td class="text-end">
-                                    <input type="number"
-                                        name="stock_almacenes[{{ $almacen->id }}]"
+                                    <input type="number" name="stock_almacenes[{{ $almacen->id }}]"
                                         class="form-control form-control-sm form-control-solid text-end w-100px ms-auto"
-                                        value="{{ old('stock_almacenes.' . $almacen->id, $cantidadActual) }}"
-                                        min="0"
-                                        {{ $activo->serial_number ? 'readonly' : '' }} />
+                                        value="{{ old('stock_almacenes.' . $almacen->id, $cantidadActual) }}" min="0" />
                                 </td>
                             </tr>
                             @endforeach
                         </tbody>
                     </table>
                 </div>
+                @endif
             </div>
 
             <div class="text-center pt-10">

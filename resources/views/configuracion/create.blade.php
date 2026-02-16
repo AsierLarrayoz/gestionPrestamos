@@ -37,21 +37,46 @@
                 </div>
             </div>
 
-            <div class="row g-9 mb-8">
-                <div class="col-md-6 fv-row">
-                    <label class="required fs-6 fw-semibold mb-2">Rol del Sistema</label>
-                    <select name="rol_id" class="form-select form-select-solid @error('rol_id') is-invalid @enderror" data-control="select2" data-placeholder="Selecciona un rol">
-                        <option value=""></option>
-                        @foreach($roles as $rol)
-                        <option value="{{ $rol->id }}" {{ old('rol_id') == $rol->id ? 'selected' : '' }}>
-                            {{ $rol->rol }}
-                        </option>
-                        @endforeach
-                    </select>
-                    @error('rol_id')
-                    <div class="invalid-feedback d-block">{{ $message }}</div>
-                    @enderror
+            <div class="fv-row mb-8">
+                <label class="fs-6 fw-bold mb-5">Permisos de Acceso</label>
+
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-9">
+                    <div class="col">
+                        <label class="form-check form-check-custom form-check-solid me-10">
+                            <input class="form-check-input h-20px w-20px" type="checkbox" name="permiso_usuarios" value="1" {{ old('permiso_usuarios') ? 'checked' : '' }} />
+                            <span class="form-check-label fw-semibold text-gray-700">Gestión de Usuarios</span>
+                        </label>
+                    </div>
+
+                    <div class="col">
+                        <label class="form-check form-check-custom form-check-solid me-10">
+                            <input class="form-check-input h-20px w-20px" type="checkbox" name="permiso_activos" value="1" {{ old('permiso_activos', '1') == '1' ? 'checked' : '' }} />
+                            <span class="form-check-label fw-semibold text-gray-700">Gestión de Activos</span>
+                        </label>
+                    </div>
+
+                    <div class="col">
+                        <label class="form-check form-check-custom form-check-solid me-10">
+                            <input class="form-check-input h-20px w-20px" type="checkbox" name="permiso_almacenes" value="1" {{ old('permiso_almacenes', '1') == '1' ? 'checked' : '' }} />
+                            <span class="form-check-label fw-semibold text-gray-700">Gestión de Almacenes</span>
+                        </label>
+                    </div>
+
+                    <div class="col">
+                        <label class="form-check form-check-custom form-check-solid me-10">
+                            <input class="form-check-input h-20px w-20px" type="checkbox" name="permiso_incidencias" value="1" {{ old('permiso_incidencias', '1') == '1' ? 'checked' : '' }} />
+                            <span class="form-check-label fw-semibold text-gray-700">Incidencias</span>
+                        </label>
+                    </div>
+
+                    <div class="col">
+                        <label class="form-check form-check-custom form-check-solid me-10">
+                            <input class="form-check-input h-20px w-20px" type="checkbox" name="permiso_prestamos" value="1" {{ old('permiso_prestamos', '1') == '1' ? 'checked' : '' }} />
+                            <span class="form-check-label fw-semibold text-gray-700">Préstamos</span>
+                        </label>
+                    </div>
                 </div>
+                <div class="form-text text-muted mt-3">Selecciona los módulos a los que este usuario tendrá acceso.</div>
             </div>
 
             <hr class="my-10 text-gray-200">

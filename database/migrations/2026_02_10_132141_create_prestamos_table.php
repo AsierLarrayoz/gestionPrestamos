@@ -21,7 +21,7 @@ return new class extends Migration
             $table->foreignId('activo_id')->constrained('activos');
             $table->foreignId('user_id')->constrained('users');
             $table->foreignId('almacen_prestado_id')->constrained('almacenes', 'id');
-            $table->foreignId('almacen_devuelto_id')->constrained('almacenes', 'id');
+            $table->foreignId('almacen_devuelto_id')->nullable()->constrained('almacenes', 'id');
             $table->timestamps();
         });
     }

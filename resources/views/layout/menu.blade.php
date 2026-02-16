@@ -32,27 +32,41 @@
                         </div>
                     </div>
                 </div>
+                @if(Auth::user()->permisos?->permiso_prestamos)
                 <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
                     <span class="menu-link">
-                        <span class="menu-icon"><i class="ki-outline ki-book-open fs-2"></i></span>
-                        <span class="menu-title">Tareas</span>
+                        <span class="menu-icon">
+                            <i class="ki-outline ki-delivery-2 fs-2"></i>
+                        </span>
+                        <span class="menu-title">Préstamos</span>
                         <span class="menu-arrow"></span>
                     </span>
+
                     <div class="menu-sub menu-sub-accordion">
+
                         <div class="menu-item">
-                            <a class="menu-link" href="/paginaTareas">
+                            <a class="menu-link" href="{{ route('prestamos.create') }}">
                                 <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                                <span class="menu-title">Tareas</span>
+                                <span class="menu-title">Puesto de Escaneo</span>
+                            </a>
+                        </div>
+
+                        <div class="menu-item">
+                            <a class="menu-link" href="{{ route('prestamos.index') }}">
+                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                <span class="menu-title">Prestamos activos</span>
                             </a>
                         </div>
                         <div class="menu-item">
-                            <a class="menu-link" href="/paginaListasTareas">
+                            <a class="menu-link" href="{{ route('prestamos.historial') }}">
                                 <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                                <span class="menu-title">Listas de Tareas</span>
+                                <span class="menu-title">Historial</span>
                             </a>
                         </div>
+
                     </div>
                 </div>
+                @endif
                 <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
                     <span class="menu-link">
                         <span class="menu-icon"><i class="ki-outline ki-archive fs-2"></i></span>
@@ -74,27 +88,32 @@
                         </div>
                     </div>
                 </div>
-                <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
-                    <span class="menu-link">
-                        <span class="menu-icon"><i class="ki-outline ki-calendar fs-2"></i></span>
-                        <span class="menu-title">Calendarios</span>
-                        <span class="menu-arrow"></span>
-                    </span>
-                    <div class="menu-sub menu-sub-accordion">
-                        <div class="menu-item">
-                            <a class="menu-link" href="/paginaTipoAusencias">
-                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                                <span class="menu-title">No definido</span>
-                            </a>
-                        </div>
-                    </div>
+                @if(Auth::check() && Auth::user()->permisos?->permiso_almacenes)
+                <div class="menu-item">
+                    <a class="menu-link" href="{{ route('almacenes.index') }}">
+                        <span class="menu-icon">
+                            <i class="ki-outline ki-home-3 fs-2"></i>
+                        </span>
+                        <span class="menu-title">Gestionar almacenes</span>
+                    </a>
                 </div>
+                @endif
+                @if(Auth::check() && Auth::user()->permisos?->permiso_activos)
+                <div class="menu-item">
+                    <a class="menu-link" href="{{ route('activos.index') }}">
+                        <span class="menu-icon">
+                            <i class="ki-outline ki-barcode fs-2"></i>
+                        </span>
+                        <span class="menu-title">Gestionar activos</span>
+                    </a>
+                </div>
+                @endif
                 <!-- ESTA OPCION DEL MENU QUE SOLO SALGA AL ALDMIN-->
-                @if(Auth::check() && Auth::user()->rol->rol === 'Administrador')
+                @if(Auth::check() && Auth::user()->permisos?->permiso_usuarios)
                 <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
                     <span class="menu-link">
                         <span class="menu-icon"><i class="ki-outline ki-lock fs-2"></i></span>
-                        <span class="menu-title">Super Admin</span>
+                        <span class="menu-title">Admin</span>
                         <span class="menu-arrow"></span>
                     </span>
                     <div class="menu-sub menu-sub-accordion">
@@ -104,18 +123,7 @@
                                 <span class="menu-title">Gestionar usuarios</span>
                             </a>
                         </div>
-                        <div class="menu-item">
-                            <a class="menu-link" href="{{ route('almacenes.index') }}">
-                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                                <span class="menu-title">Gestionar almacenes</span>
-                            </a>
-                        </div>
-                        <div class="menu-item">
-                            <a class="menu-link" href="{{ route('activos.index') }}">
-                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                                <span class="menu-title">Gestionar activos</span>
-                            </a>
-                        </div>
+
                     </div>
                 </div>
                 @endif

@@ -3,9 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
-use App\Models\ModelosBasicos\Rol;
+use App\Models\ModelosBasicos\Permiso;
 
-// Importamos todos los controladores
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ActivoController;
 use App\Http\Controllers\PrestamoController;
@@ -17,82 +16,89 @@ use App\Http\Controllers\ControllersBasicos\TipoController;
 use App\Http\Controllers\ControllersBasicos\NivelController;
 use App\Http\Controllers\ControllersBasicos\SaludController;
 use App\Http\Controllers\ControllersBasicos\EstadoController;
-use App\Http\Controllers\ControllersBasicos\RolController;
+use App\Http\Controllers\ControllersBasicos\PermisoController;
 use App\Http\Controllers\ConfiguracionController;
+
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 
-Route::get('/', function (Request $request) {
-    if (Auth::check()) {
-        return redirect()->route('dashboard');
-    }
-    return redirect()->route('login');
-
-    /*$usuarios = User::with('rol')
-        ->when($request->buscar, function ($query, $buscar) {
-            return $query->where('name', 'LIKE', "%{$buscar}%");
-        })
-        ->paginate(4)
-        ->withQueryString(); // Mantiene el filtro al cambiar de página
-
-    return view('auth.select_profile', compact('usuarios'));*/
+// --- RUTAS PÚBLICAS / REDIRECCIÓN ---
+Route::get('/', function () {
+    return Auth::check() ? redirect()->route('dashboard') : redirect()->route('login');
 });
 
-//Solo usuarios logueados pueden entrar aquí
+// --- RUTAS PROTEGIDAS (SOLO LOGUEADOS) ---
 Route::middleware(['auth'])->group(function () {
 
-    // Cambiamos la función anónima por el HomeController para que cargue los $stats
     Route::get('/dashboard', [HomeController::class, 'index'])->name('dashboard');
 
-    Route::middleware(['admin'])->group(function () {
+    // 1. MÓDULO DE USUARIOS Y CONFIGURACIÓN (Permiso: usuarios)
+    Route::middleware(['admin:usuarios'])->group(function () {
         Route::resource('usuarios', ConfiguracionController::class)->names('configuracion');
-        Route::resource('roles', RolController::class);
+        Route::resource('permisos', PermisoController::class); // Antes llamado 'roles'
+    });
+
+    // 2. MÓDULO DE ALMACENES (Permiso: almacenes)
+    Route::middleware(['admin:almacenes'])->group(function () {
         Route::resource('almacenes', AlmacenController::class);
+    });
+
+    // 3. MÓDULO DE ACTIVOS E INVENTARIO (Permiso: activos)
+    Route::middleware(['admin:activos'])->group(function () {
+        Route::resource('activos', ActivoController::class);
+
+        // Auxiliares de Activos
         Route::resource('marcas', MarcaController::class);
         Route::resource('modelos', ModeloController::class);
         Route::resource('tipos', TipoController::class);
         Route::resource('niveles', NivelController::class);
         Route::resource('salud', SaludController::class);
         Route::resource('estados', EstadoController::class);
-        // Rutas de creación rápida (AJAX) para los modales
+
+        // Rutas AJAX para modales en creación de activos
         Route::post('/marcas/quick-store', [ActivoController::class, 'quickStoreMarca'])->name('marcas.quickStore');
         Route::post('/modelos/quick-store', [ActivoController::class, 'quickStoreModelo'])->name('modelos.quickStore');
         Route::post('/tipos/quick-store', [ActivoController::class, 'quickStoreTipo'])->name('tipos.quickStore');
         Route::post('/salud/quick-store', [ActivoController::class, 'quickStoreSalud'])->name('salud.quickStore');
 
-        // Ruta para cargar modelos según marca
+        // Carga dinámica de modelos
         Route::get('/get-modelos/{id}', [ActivoController::class, 'getModelosByMarca'])->name('activos.getModelos');
     });
-    Route::get('activos/modelos/{id}', [ActivoController::class, 'getModelosByMarca']);
-    Route::resource('activos', ActivoController::class);
-    Route::get('prestamos/historial', [PrestamoController::class, 'historial'])->name('prestamos.historial');
-    Route::resource('prestamos', PrestamoController::class)->except(['show', 'edit', 'update', 'destroy']);
-    Route::resource('incidencias', IncidenciaController::class);
+
+    // 4. MÓDULO DE PRÉSTAMOS (Permiso: prestamos)
+    Route::middleware(['admin:prestamos'])->group(function () {
+        Route::get('prestamos/historial', [PrestamoController::class, 'historial'])->name('prestamos.historial');
+        Route::resource('prestamos', PrestamoController::class)->except(['show', 'edit', 'update', 'destroy']);
+    });
+
+    // 5. MÓDULO DE INCIDENCIAS (Permiso: incidencias)
+    Route::middleware(['admin:incidencias'])->group(function () {
+        Route::resource('incidencias', IncidenciaController::class);
+    });
 });
 
-Route::get('/seleccion-perfil', function () {
-    // Obtenemos los usuarios y sus roles para mostrarlos
-    $usuarios = \App\Models\User::with('rol')->get();
-    return view('auth.select_profile', compact('usuarios'));
-})->name('profile.select');
+// --- RUTA DE INSTALACIÓN (DESCOMENTAR SOLO SI ES NECESARIO) ---
+/*
+Route::get('/instalar-admin', function () {
+    $permisosAdmin = Permiso::firstOrCreate([
+        'permiso_usuarios'    => true,
+        'permiso_activos'     => true,
+        'permiso_almacenes'   => true,
+        'permiso_incidencias' => true,
+        'permiso_prestamos'   => true,
+    ]);
 
-/*Route::get('/instalar-admin', function () {
-    // 1. Creamos el rol de Administrador si no existe
-    $rol = Rol::firstOrCreate(['rol' => 'Administrador']);
-    //$rol = Rol::firstOrCreate(['rol' => 'Trabajador']);
-
-    // 2. Creamos tu usuario vinculado a ese rol
-    $user = User::firstOrCreate(
-        ['email' => 'admin@admin.com'], // Busca por email
+    User::firstOrCreate(
+        ['email' => 'admin@admin.com'],
         [
-            'name'     => 'Asier ',
-            'password' => Hash::make('12345678'), // Tu contraseña
-            'rol_id'   => $rol->id
+            'name'        => 'Asier',
+            'password'    => Hash::make('12345678'),
+            'permisos_id' => $permisosAdmin->id
         ]
     );
 
-    return "Usuario creado correctamente. Email: admin@admin.com | Pass: 12345678. YA PUEDES BORRAR ESTA RUTA.";
-});*/
+    return "Admin instalado.";
+});
+*/
 
-// Rutas de autenticación de Breeze (Login, Password Reset, etc.)
 require __DIR__ . '/auth.php';

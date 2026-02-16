@@ -39,18 +39,50 @@
             </div>
 
             <div class="row g-9 mb-8">
-                <div class="col-md-6 fv-row">
-                    <label class="required fs-6 fw-semibold mb-2">Rol del Sistema</label>
-                    <select name="rol_id" class="form-select form-select-solid @error('rol_id') is-invalid @enderror" data-control="select2">
-                        @foreach($roles as $rol)
-                        <option value="{{ $rol->id }}" {{ old('rol_id', $usuario->rol_id) == $rol->id ? 'selected' : '' }}>
-                            {{ $rol->rol }}
-                        </option>
-                        @endforeach
-                    </select>
-                    @error('rol_id')
-                    <div class="invalid-feedback d-block">{{ $message }}</div>
-                    @enderror
+                <div class="col-12 fv-row">
+                    <label class="fs-6 fw-bold mb-5">Permisos del Usuario</label>
+
+                    <div class="row row-cols-1 row-cols-md-3 g-9">
+                        <div class="col">
+                            <label class="form-check form-check-custom form-check-solid">
+                                <input class="form-check-input h-20px w-20px" type="checkbox" name="permiso_usuarios" value="1"
+                                    {{ old('permiso_usuarios', $usuario->permisos?->permiso_usuarios) ? 'checked' : '' }} />
+                                <span class="form-check-label fw-semibold text-gray-700">Gestión de Usuarios</span>
+                            </label>
+                        </div>
+
+                        <div class="col">
+                            <label class="form-check form-check-custom form-check-solid">
+                                <input class="form-check-input h-20px w-20px" type="checkbox" name="permiso_activos" value="1"
+                                    {{ old('permiso_activos', $usuario->permisos?->permiso_activos) ? 'checked' : '' }} />
+                                <span class="form-check-label fw-semibold text-gray-700">Gestión de Activos</span>
+                            </label>
+                        </div>
+
+                        <div class="col">
+                            <label class="form-check form-check-custom form-check-solid">
+                                <input class="form-check-input h-20px w-20px" type="checkbox" name="permiso_almacenes" value="1"
+                                    {{ old('permiso_almacenes', $usuario->permisos?->permiso_almacenes) ? 'checked' : '' }} />
+                                <span class="form-check-label fw-semibold text-gray-700">Gestión de Almacenes</span>
+                            </label>
+                        </div>
+
+                        <div class="col">
+                            <label class="form-check form-check-custom form-check-solid">
+                                <input class="form-check-input h-20px w-20px" type="checkbox" name="permiso_incidencias" value="1"
+                                    {{ old('permiso_incidencias', $usuario->permisos?->permiso_incidencias) ? 'checked' : '' }} />
+                                <span class="form-check-label fw-semibold text-gray-700">Incidencias</span>
+                            </label>
+                        </div>
+
+                        <div class="col">
+                            <label class="form-check form-check-custom form-check-solid">
+                                <input class="form-check-input h-20px w-20px" type="checkbox" name="permiso_prestamos" value="1"
+                                    {{ old('permiso_prestamos', $usuario->permisos?->permiso_prestamos) ? 'checked' : '' }} />
+                                <span class="form-check-label fw-semibold text-gray-700">Préstamos</span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -59,7 +91,7 @@
                 <div class="d-flex flex-stack flex-grow-1">
                     <div class="fw-semibold">
                         <h4 class="text-gray-900 fw-bold">Actualización de seguridad</h4>
-                        <div class="fs-6 text-gray-700">Deja los siguientes campos en blanco si **no** deseas cambiar la contraseña del usuario.</div>
+                        <div class="fs-6 text-gray-700">Deja los siguientes campos en blanco si NO deseas cambiar la contraseña del usuario.</div>
                     </div>
                 </div>
             </div>
@@ -82,7 +114,7 @@
             </div>
 
             <div class="text-center pt-10">
-                <button type="reset" class="btn btn-light me-3">Descartar cambios</button>
+                <button type="reset" class="btn btn-light me-3">Revertir cambios</button>
                 <button type="submit" class="btn btn-primary">
                     <span class="indicator-label">Actualizar Usuario</span>
                 </button>

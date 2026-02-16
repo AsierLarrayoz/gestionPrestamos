@@ -32,7 +32,7 @@ class Activo extends Model
     }
     public function salud()
     {
-        return $this->belongsTo(Salud::class); // Asegúrate de tener el modelo Salud.php
+        return $this->belongsTo(Salud::class);
     }
     public function prestamos()
     {

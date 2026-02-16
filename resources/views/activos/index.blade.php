@@ -58,9 +58,22 @@
                             </div>
                         </td>
                         <td class="text-end">
-                            <a href="{{ route('activos.edit', $activo->id) }}" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"><i class="ki-outline ki-pencil fs-2"></i></a>
-                            <button onclick="confirmarBorrado('{{ $activo->id }}', '{{ $activo->serial_number }}')" class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm"><i class="ki-outline ki-trash fs-2"></i></button>
-                            <form id="delete-form-{{ $activo->id }}" action="{{ route('activos.destroy', $activo->id) }}" method="POST" style="display: none;">@csrf @method('DELETE')</form>
+                            <a href="{{ route('activos.edit', $activo->id) }}" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1">
+                                <i class="ki-outline ki-pencil fs-2"></i>
+                            </a>
+
+                            <a href="{{ route('activos.print-qr', $activo->id) }}" target="_blank" class="btn btn-icon btn-bg-light btn-active-color-dark btn-sm me-1" title="Imprimir QR">
+                                <i class="ki-outline ki-printer fs-2"></i>
+                            </a>
+
+                            <button onclick="confirmarBorrado('{{ $activo->id }}', '{{ $activo->serial_number }}')" class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm">
+                                <i class="ki-outline ki-trash fs-2"></i>
+                            </button>
+
+                            <form id="delete-form-{{ $activo->id }}" action="{{ route('activos.destroy', $activo->id) }}" method="POST" style="display: none;">
+                                @csrf
+                                @method('DELETE')
+                            </form>
                         </td>
                     </tr>
                     @endforeach

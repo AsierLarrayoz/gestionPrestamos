@@ -54,6 +54,7 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('niveles', NivelController::class);
         Route::resource('salud', SaludController::class);
         Route::resource('estados', EstadoController::class);
+        Route::get('/activos/{id}/print-qr', [ActivoController::class, 'printQr'])->name('activos.print-qr');
 
         // Rutas AJAX para modales en creación de activos
         Route::post('/marcas/quick-store', [ActivoController::class, 'quickStoreMarca'])->name('marcas.quickStore');

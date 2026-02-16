@@ -162,6 +162,12 @@ class ActivoController extends Controller
         $marca = \App\Models\ModelosBasicos\Marca::create($request->all());
         return response()->json($marca);
     }
+    public function printQr($id)
+    {
+        $activo = Activo::with('modelo.marca')->findOrFail($id);
+
+        return view('activos.print_qr', compact('activo'));
+    }
 
     public function quickStoreModelo(Request $request)
     {

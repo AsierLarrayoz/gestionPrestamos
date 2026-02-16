@@ -8,16 +8,7 @@
         <!-- Email Address -->
         <div>
             <x-input-label for="email" :value="__('Email')" />
-
-            {{-- Modificamos el :value para que priorice el email de la URL, luego el antiguo (old) y finalmente vacío --}}
-            <x-text-input id="email"
-                class="block mt-1 w-full"
-                type="email"
-                name="email"
-                :value="request('email') ?? old('email')"
-                required
-                autofocus
-                autocomplete="username" />
+            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" />
 
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>

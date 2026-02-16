@@ -94,41 +94,51 @@ class ActivoController extends Controller
 
     public function update(Request $request, string $id)
     {
+        //dd($request->all());
         $activo = Activo::findOrFail($id);
 
         $validatedData = $request->validate([
-            'rfid_code'     => 'nullable|string|max:255|unique:activos,rfid_code,' . $activo->id,
-            'modelo_id'     => 'nullable|exists:modelos,id',
-            'tipo_id'       => 'required|exists:tipos,id',
-            'salud_id'      => 'required|exists:salud,id',
-            'cantidad'      => 'required|integer|min:0',
-            'almacen_id'    => 'required|exists:almacenes,id',
+            'rfid_code'       => 'nullable|string|max:255|unique:activos,rfid_code,' . $activo->id,
+            'modelo_id'       => 'nullable|exists:modelos,id',
+            'tipo_id'         => 'required|exists:tipos,id',
+            'salud_id'        => 'required|exists:salud,id',
+            'stock_almacenes' => 'required|array',
         ]);
-        if ($activo->serial_number) {
-            $validatedData['serial_number'] = $activo->serial_number;
+
+        $distribucion = $request->input('stock_almacenes', []);
+        $datosPivot = [];
+        $totalRealGlobal = 0;
+
+        foreach ($distribucion as $almacenId => $cant) {
+            $cant = (int)$cant;
+
+
+            if ($activo->serial_number && $cant > 1) {
+                $cant = 1;
+            }
+
+            if ($cant > 0) {
+                $datosPivot[$almacenId] = ['cantidad' => $cant];
+                $totalRealGlobal += $cant;
+            }
         }
 
-        $nuevaCantAlmacen = !empty($request->serial_number) ? 1 : $request->cantidad;
-
-        $almacenDestino = $activo->almacenes()->where('almacen_id', $request->almacen_id)->first();
-
-        if ($almacenDestino) {
-            $activo->almacenes()->updateExistingPivot($request->almacen_id, [
-                'cantidad' => $nuevaCantAlmacen
-            ]);
-        } else {
-            $activo->almacenes()->attach($request->almacen_id, ['cantidad' => $nuevaCantAlmacen]);
+        if ($activo->serial_number && $totalRealGlobal > 1) {
+            $totalRealGlobal = 1;
         }
 
-        $activo->load('almacenes');
-        $totalRealGlobal = $activo->almacenes->sum('pivot.cantidad');
+        $activo->almacenes()->sync($datosPivot);
 
-        $activo->update(array_merge($validatedData, [
+        $activo->update([
+            'rfid_code'     => $validatedData['rfid_code'],
+            'modelo_id'     => $validatedData['modelo_id'],
+            'tipo_id'       => $validatedData['tipo_id'],
+            'salud_id'      => $validatedData['salud_id'],
             'cantidad'      => $totalRealGlobal,
-            'is_serialized' => !empty($request->serial_number)
-        ]));
+            'is_serialized' => !empty($activo->serial_number)
+        ]);
 
-        return redirect()->route('activos.index')->with('success', 'Activo y stock actualizados correctamente.');
+        return redirect()->route('activos.index')->with('success', 'Activo y distribución de stock actualizados.');
     }
 
     public function destroy(string $id)

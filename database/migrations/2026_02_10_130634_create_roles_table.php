@@ -11,9 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('roles', function (Blueprint $table) {
+        Schema::create('permisos', function (Blueprint $table) {
             $table->id();
-            $table->string('rol');
+            $table->boolean('permiso_usuarios')->default(false);
+            $table->boolean('permiso_activos')->default(true);
+            $table->boolean('permiso_almacenes')->default(true);
+            $table->boolean('permiso_incidencias')->default(true);
+            $table->boolean('permiso_prestamos')->default(true);
             $table->timestamps();
         });
     }

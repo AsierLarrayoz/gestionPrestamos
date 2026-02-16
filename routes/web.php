@@ -26,19 +26,19 @@ Route::get('/', function (Request $request) {
     if (Auth::check()) {
         return redirect()->route('dashboard');
     }
+    return redirect()->route('login');
 
-    // Buscamos por nombre si hay un término, si no, traemos todos
-    $usuarios = User::with('rol')
+    /*$usuarios = User::with('rol')
         ->when($request->buscar, function ($query, $buscar) {
             return $query->where('name', 'LIKE', "%{$buscar}%");
         })
         ->paginate(4)
         ->withQueryString(); // Mantiene el filtro al cambiar de página
 
-    return view('auth.select_profile', compact('usuarios'));
+    return view('auth.select_profile', compact('usuarios'));*/
 });
 
-// Grupo protegido: Solo usuarios logueados pueden entrar aquí
+//Solo usuarios logueados pueden entrar aquí
 Route::middleware(['auth'])->group(function () {
 
     // Cambiamos la función anónima por el HomeController para que cargue los $stats

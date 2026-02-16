@@ -42,7 +42,7 @@
                         </td>
                         <td>
                             <div class="badge badge-light-secondary fs-8">{{ $activo->serial_number ?? 'Sin S/N' }}</div>
-                            <div class="text-muted fs-9">{{ $activo->rfid ?? 'Sin RFID' }}</div>
+                            <div class="text-muted fs-9">RFID: {{ $activo->rfid_code ?? 'Sin RFID' }}</div>
                         </td>
                         <td>
                             <div class="d-flex flex-column">
@@ -50,15 +50,7 @@
                             </div>
                         </td>
                         <td>
-                            @php
-                            $color = match($activo->salud->salud ?? '') {
-                            'Excelente' => 'success',
-                            'Dañado' => 'danger',
-                            'En reparación' => 'warning',
-                            default => 'primary'
-                            };
-                            @endphp
-                            <span class="badge badge-light-{{ $color }}">{{ $activo->salud->salud ?? 'N/A' }}</span>
+                            <span class="badge badge-light">{{ $activo->salud->salud ?? 'N/A' }}</span>
                         </td>
                         <td>
                             <div class="d-flex flex-column">

@@ -31,14 +31,16 @@
             <div class="row g-9 mb-8">
                 <div class="col-md-6 fv-row">
                     <label class="required fs-6 fw-semibold mb-2">Marca</label>
-                    <div class="input-group input-group-solid">
-                        <select id="marca_id" name="marca_id" class="form-select form-select-solid" data-control="select2" data-placeholder="Seleccionar Marca">
-                            <option></option>
-                            @foreach($marcas as $marca)
-                            <option value="{{ $marca->id }}">{{ $marca->marca }}</option>
-                            @endforeach
-                        </select>
-                        <button class="btn btn-icon btn-light-primary" type="button" data-bs-toggle="modal" data-bs-target="#modal_add_marca">
+                    <div class="input-group input-group-solid flex-nowrap">
+                        <div class="overflow-hidden flex-grow-1">
+                            <select id="marca_id" name="marca_id" class="form-select form-select-solid rounded-start" data-control="select2" data-placeholder="Seleccionar Marca">
+                                <option></option>
+                                @foreach($marcas as $marca)
+                                <option value="{{ $marca->id }}">{{ $marca->marca }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <button class="btn btn-icon btn-light-primary px-5" type="button" data-bs-toggle="modal" data-bs-target="#modal_add_marca">
                             <i class="ki-outline ki-plus fs-2"></i>
                         </button>
                     </div>
@@ -46,11 +48,13 @@
 
                 <div class="col-md-6 fv-row">
                     <label class="required fs-6 fw-semibold mb-2">Modelo</label>
-                    <div class="input-group input-group-solid">
-                        <select id="modelo_id" name="modelo_id" class="form-select form-select-solid" data-control="select2" data-placeholder="Seleccionar Modelo" disabled>
-                            <option></option>
-                        </select>
-                        <button id="btn_modal_modelo" class="btn btn-icon btn-light-primary" type="button" data-bs-toggle="modal" data-bs-target="#modal_add_modelo" disabled>
+                    <div class="input-group input-group-solid flex-nowrap">
+                        <div class="overflow-hidden flex-grow-1">
+                            <select id="modelo_id" name="modelo_id" class="form-select form-select-solid rounded-start" data-control="select2" data-placeholder="Seleccionar Modelo" disabled>
+                                <option></option>
+                            </select>
+                        </div>
+                        <button id="btn_modal_modelo" class="btn btn-icon btn-light-primary px-5" type="button" data-bs-toggle="modal" data-bs-target="#modal_add_modelo" disabled>
                             <i class="ki-outline ki-plus fs-2"></i>
                         </button>
                     </div>
@@ -60,14 +64,16 @@
             <div class="row g-9 mb-8">
                 <div class="col-md-6 fv-row">
                     <label class="required fs-6 fw-semibold mb-2">Tipo de Activo</label>
-                    <div class="input-group input-group-solid">
-                        <select id="tipo_id" name="tipo_id" class="form-select form-select-solid" data-control="select2" data-placeholder="Ej: Portátil, Monitor...">
-                            <option></option>
-                            @foreach($tipos as $tipo)
-                            <option value="{{ $tipo->id }}">{{ $tipo->tipo }}</option>
-                            @endforeach
-                        </select>
-                        <button class="btn btn-icon btn-light-primary" type="button" data-bs-toggle="modal" data-bs-target="#modal_add_tipo">
+                    <div class="input-group input-group-solid flex-nowrap">
+                        <div class="overflow-hidden flex-grow-1">
+                            <select id="tipo_id" name="tipo_id" class="form-select form-select-solid rounded-start" data-control="select2" data-placeholder="Ej: Portátil, Monitor...">
+                                <option></option>
+                                @foreach($tipos as $tipo)
+                                <option value="{{ $tipo->id }}">{{ $tipo->tipo }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <button class="btn btn-icon btn-light-primary px-5" type="button" data-bs-toggle="modal" data-bs-target="#modal_add_tipo">
                             <i class="ki-outline ki-plus fs-2"></i>
                         </button>
                     </div>
@@ -75,14 +81,16 @@
 
                 <div class="col-md-6 fv-row">
                     <label class="required fs-6 fw-semibold mb-2">Estado de Salud</label>
-                    <div class="input-group input-group-solid">
-                        <select id="salud_id" name="salud_id" class="form-select form-select-solid" data-control="select2" data-placeholder="Ej: Excelente, Dañado...">
-                            <option></option>
-                            @foreach($salud as $s)
-                            <option value="{{ $s->id }}">{{ $s->salud }}</option>
-                            @endforeach
-                        </select>
-                        <button class="btn btn-icon btn-light-primary" type="button" data-bs-toggle="modal" data-bs-target="#modal_add_salud">
+                    <div class="input-group input-group-solid flex-nowrap">
+                        <div class="overflow-hidden flex-grow-1">
+                            <select id="salud_id" name="salud_id" class="form-select form-select-solid rounded-start" data-control="select2" data-placeholder="Ej: Excelente, Dañado...">
+                                <option></option>
+                                @foreach($salud as $s)
+                                <option value="{{ $s->id }}">{{ $s->salud }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <button class="btn btn-icon btn-light-primary px-5" type="button" data-bs-toggle="modal" data-bs-target="#modal_add_salud">
                             <i class="ki-outline ki-plus fs-2"></i>
                         </button>
                     </div>
@@ -101,10 +109,9 @@
                 <div class="col-md-6 fv-row">
                     <label class="required fs-6 fw-semibold mb-2">Cantidad Inicial</label>
                     <input type="number" name="cantidad" class="form-control form-control-solid" value="1" min="1" required />
-
                     <div class="form-text text-muted fs-7">
                         <i class="ki-outline ki-information-5 text-primary fs-6"></i>
-                        <strong>Nota:</strong> Si introduces un <strong>Número de Serie</strong>, el sistema ignorará esta cantidad y guardará automáticamente <strong>1 unidad</strong>.
+                        <strong>Nota:</strong> Si introduces un <strong>Número de Serie</strong>, el sistema ignorará esta cantidad y guardará <strong>1 unidad</strong>.
                     </div>
                 </div>
             </div>
@@ -163,28 +170,25 @@
             selectId = '#modelo_id';
             modalId = '#modal_add_modelo';
         } else if (entidad === 'tipo') {
-            url = "/tipos/quick-store"; // Asegúrate de crear esta ruta
+            url = "/tipos/quick-store";
             data.tipo = $('#input_nuevo_tipo').val();
             selectId = '#tipo_id';
             modalId = '#modal_add_tipo';
         } else if (entidad === 'salud') {
-            url = "/salud/quick-store"; // Asegúrate de crear esta ruta
+            url = "/salud/quick-store";
             data.salud = $('#input_nueva_salud').val();
             selectId = '#salud_id';
             modalId = '#modal_add_salud';
         }
 
         $.post(url, data).done(function(res) {
-            // Añadir al select y seleccionar automáticamente
             let nombreMostrar = res.marca || res.modelo || res.tipo || res.salud;
             let opt = new Option(nombreMostrar, res.id, true, true);
             $(selectId).append(opt).trigger('change');
-
-            // Cerrar y limpiar
             $(modalId).modal('hide');
             $('.modal-body input').val('');
             Swal.fire('Éxito', 'Guardado correctamente', 'success');
-        }).fail(() => Swal.fire('Error', 'No se pudo guardar. Revisa si ya existe.', 'error'));
+        }).fail(() => Swal.fire('Error', 'No se pudo guardar.', 'error'));
     }
 </script>
 @endsection

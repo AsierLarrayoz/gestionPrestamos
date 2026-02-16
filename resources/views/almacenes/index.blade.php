@@ -42,7 +42,6 @@
                             </div>
                         </td>
                         <td>
-                            {{-- Usamos el conteo que definiste en tu controlador --}}
                             <span class="badge badge-light-dark">{{ $almacen->activos()->count() }} items</span>
                         </td>
                         <td class="text-end">

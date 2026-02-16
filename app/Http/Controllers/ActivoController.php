@@ -109,6 +109,7 @@ class ActivoController extends Controller
         $totalRealGlobal = 0;
 
         if ($activo->serial_number) {
+
             $almacenDestino = $request->input('nuevo_almacen_id');
             $datosPivot[$almacenDestino] = ['cantidad' => 1];
             $totalRealGlobal = 1;
@@ -159,7 +160,7 @@ class ActivoController extends Controller
     public function quickStoreMarca(Request $request)
     {
         $request->validate(['marca' => 'required|string|unique:marcas,marca']);
-        $marca = \App\Models\ModelosBasicos\Marca::create($request->all());
+        $marca = Marca::create($request->all());
         return response()->json($marca);
     }
     public function printQr($id)
@@ -175,21 +176,21 @@ class ActivoController extends Controller
             'modelo' => 'required|string',
             'marca_id' => 'required|exists:marcas,id'
         ]);
-        $modelo = \App\Models\ModelosBasicos\Modelo::create($request->all());
+        $modelo = Modelo::create($request->all());
         return response()->json($modelo);
     }
 
     public function quickStoreTipo(Request $request)
     {
         $request->validate(['tipo' => 'required|string|unique:tipos,tipo']);
-        $tipo = \App\Models\ModelosBasicos\Tipo::create($request->all());
+        $tipo = Tipo::create($request->all());
         return response()->json($tipo);
     }
 
     public function quickStoreSalud(Request $request)
     {
         $request->validate(['salud' => 'required|string|unique:salud,salud']);
-        $salud = \App\Models\ModelosBasicos\Salud::create($request->all());
+        $salud = Salud::create($request->all());
         return response()->json($salud);
     }
 }

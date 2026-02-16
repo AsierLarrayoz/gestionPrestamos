@@ -95,13 +95,13 @@
     </div>
 
     <div class="no-print" style="margin-top: 20px;">
-        <button onclick="window.print()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">🖨️ Imprimir Etiqueta</button>
-        <button onclick="window.close()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">❌ Cerrar</button>
+        <button onclick="window.print()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">Imprimir Etiqueta</button>
+        <button onclick="window.close()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">Cerrar</button>
     </div>
 
     <script>
         var qrcode = new QRCode(document.getElementById("qrcode"), {
-            text: "{{ $activo->uuid }}", // Usamos el UUID como contenido
+            text: "{{ $activo->uuid }}",
             width: 150,
             height: 150,
             colorDark: "#000000",

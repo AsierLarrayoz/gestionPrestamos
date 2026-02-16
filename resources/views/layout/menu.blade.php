@@ -108,6 +108,18 @@
                     </a>
                 </div>
                 @endif
+                @if(Auth::check() && Auth::user()->permisos?->permiso_prestamos)
+                @if(Auth::check() && Auth::user()->permisos?->permiso_activos)
+                <div class="menu-item">
+                    <a class="menu-link" href="{{ route('reservas.index') }}">
+                        <span class="menu-icon">
+                            <i class="ki-outline ki-barcode fs-2"></i>
+                        </span>
+                        <span class="menu-title">Gestionar reservas</span>
+                    </a>
+                </div>
+                @endif
+                @endif
                 <!-- ESTA OPCION DEL MENU QUE SOLO SALGA AL ALDMIN-->
                 @if(Auth::check() && Auth::user()->permisos?->permiso_usuarios)
                 <div data-kt-menu-trigger="click" class="menu-item menu-accordion">

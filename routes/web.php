@@ -18,7 +18,7 @@ use App\Http\Controllers\ControllersBasicos\SaludController;
 use App\Http\Controllers\ControllersBasicos\EstadoController;
 use App\Http\Controllers\ControllersBasicos\PermisoController;
 use App\Http\Controllers\ConfiguracionController;
-
+use App\Http\Controllers\ReservaController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 
@@ -70,6 +70,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['admin:prestamos'])->group(function () {
         Route::get('prestamos/historial', [PrestamoController::class, 'historial'])->name('prestamos.historial');
         Route::resource('prestamos', PrestamoController::class)->except(['show', 'edit', 'update', 'destroy']);
+        Route::resource('reservas', ReservaController::class);
     });
 
     // 5. MÓDULO DE INCIDENCIAS (Permiso: incidencias)

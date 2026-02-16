@@ -10,6 +10,7 @@ use App\Models\ModelosBasicos\Salud;
 use App\Models\ModelosBasicos\Tipo;
 use App\Models\ModelosBasicos\Modelo;
 use App\Models\ModelosBasicos\Almacen;
+use App\Models\Prestamo;
 
 class ActivoController extends Controller
 {
@@ -109,14 +110,30 @@ class ActivoController extends Controller
         $totalRealGlobal = 0;
 
         if ($activo->serial_number) {
-
+            $estaPrestado = $activo->prestamos()->whereNull('fecha_devuelto')->exists();
+            //$almacenActualId = $activo->almacenes->first()->id;
             $almacenDestino = $request->input('nuevo_almacen_id');
+            if ($estaPrestado) {
+                return back()->with('error', 'Este activo está actualmente prestado. No puedes cambiarlo de almacén hasta que sea devuelto.');
+            }
+
             $datosPivot[$almacenDestino] = ['cantidad' => 1];
             $totalRealGlobal = 1;
         } else {
             $distribucion = $request->input('stock_almacenes', []);
+
             foreach ($distribucion as $almacenId => $cant) {
                 $cant = (int)$cant;
+                $cantidadPrestada = Prestamo::where('activo_id', $activo->id)
+                    ->where('almacen_prestado_id', $almacenId)
+                    ->whereNull('fecha_devuelto')
+                    ->sum('cantidad_prestada');
+                //Si en un almacen hay una cantidad prestada, no se puede reducir el stock 
+                //de ese activo en ese almacen por debajo de lo prestado
+                if ($cantidadPrestada > 0 && $cant < $cantidadPrestada) {
+                    return back()->with('error', "ERROR EN ALMACÉN #$almacenId: Hay $cantidadPrestada unidades prestadas actualmente. No puedes reducir el stock por debajo de esa cantidad o eliminarlas de este almacén.");
+                }
+
                 if ($cant > 0) {
                     $datosPivot[$almacenId] = ['cantidad' => $cant];
                     $totalRealGlobal += $cant;

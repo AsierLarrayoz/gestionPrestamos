@@ -39,17 +39,15 @@ class PrestamoController extends Controller
         $almacenes = Almacen::all();
         return view('prestamos.create', compact('almacenes'));
     }
-
     public function store(Request $request)
     {
         $request->validate([
             'codigo' => 'required',
             'almacen_id' => 'required|exists:almacenes,id',
-            'cantidad' => 'nullable|integer|min:1'
         ]);
 
         $codigo = $request->input('codigo');
-        $almacenActual = $request->input('almacen_id');
+        $almacenId = $request->input('almacen_id');
 
         $activo = Activo::where('uuid', $codigo)
             ->orWhere('rfid_code', $codigo)
@@ -59,63 +57,104 @@ class PrestamoController extends Controller
             return back()->with('error', 'Código no reconocido.');
         }
 
-        $cantidadAccion = $activo->is_serialized ? 1 : ($request->input('cantidad', 1));
-
         $prestamoPendiente = Prestamo::where('activo_id', $activo->id)
             ->whereNull('fecha_devuelto')
-            //->where('usuario_id', Auth::id())
             ->first();
-        //DEVOLVER
-        if ($prestamoPendiente) {
-            if (!$activo->is_serialized && $cantidadAccion > $prestamoPendiente->cantidad_prestada) {
-                return back()->with('error', "No puedes devolver $cantidadAccion unidades; solo hay $prestamoPendiente->cantidad_prestada prestadas.");
+
+        if ($request->has('accion_confirmada')) {
+            return $this->ejecutarOperacion($request, $activo, $prestamoPendiente);
+        }
+
+        if ($activo->is_serialized) {
+            $accion = $prestamoPendiente ? 'devolver' : 'prestar';
+            //Esta linea 
+            $request->merge(['accion_confirmada' => $accion, 'cantidad_confirmada' => 1]);
+            return $this->ejecutarOperacion($request, $activo, $prestamoPendiente);
+        }
+        $stockAlmacen = $activo->almacenes()->where('almacen_id', $almacenId)->first()->pivot->cantidad ?? 0;
+        $cantidadYaPrestada = $prestamoPendiente ? $prestamoPendiente->cantidad_prestada : 0;
+
+        return back()->with([
+            'abrir_modal' => true,
+            'activoOp' => $activo,
+            'stockActual' => $stockAlmacen,
+            'codigoActivo' => $codigo,
+            'almacenActual' => $almacenId,
+            'prestamoExistente' => $prestamoPendiente,
+            'cantidadYaPrestada' => $cantidadYaPrestada
+        ]);
+    }
+
+    /**
+     * Función privada para realizar la lógica de BD y no repetir código
+     */
+    private function ejecutarOperacion(Request $request, $activo, $prestamoPendiente)
+    {
+        $accion = $request->input('accion_confirmada');
+        $cantidad = (int) $request->input('cantidad_confirmada');
+        $almacenId = $request->input('almacen_id');
+
+        //DEVOLUCIÓN
+        if ($accion === 'devolver') {
+            if (!$prestamoPendiente) {
+                return back()->with('error', 'Error: No hay préstamo activo para devolver.');
+            }
+            if ($cantidad > $prestamoPendiente->cantidad_prestada) {
+                return back()->with('error', "No puedes devolver $cantidad. Solo tienes {$prestamoPendiente->cantidad_prestada} prestados.");
             }
 
-            $prestamoPendiente->update([
-                'fecha_devuelto' => Carbon::now(),
-                'cantidad_devuelta' => $cantidadAccion,
-                'almacen_devuelto_id' => $almacenActual
-            ]);
+            // 1. Devolucion total o parcial
+            if ($cantidad == $prestamoPendiente->cantidad_prestada) {
+                // Devolución Total
+                $prestamoPendiente->update([
+                    'fecha_devuelto' => Carbon::now(),
+                    'cantidad_devuelta' => $cantidad,
+                    'almacen_devuelto_id' => $almacenId
+                ]);
+            } else {
+                //Devolucion parcial y actualizo cantidad del prestamo
+                $prestamoPendiente->decrement('cantidad_prestada', $cantidad);
+            }
 
+            // 2. Devolvemos Stock al Almacén
             $activo->almacenes()->syncWithoutDetaching([
-                $almacenActual => ['cantidad' => DB::raw("cantidad + $cantidadAccion")]
+                $almacenId => ['cantidad' => DB::raw("cantidad + $cantidad")]
             ]);
+            $activo->increment('cantidad', $cantidad);
 
-            $activo->increment('cantidad', $cantidadAccion);
-
-            $mensaje = $activo->is_serialized ? 'Devolución registrada.' : "Se han devuelto $cantidadAccion unidades.";
-            return back()->with('success', $mensaje);
-        }
-        //PRESTAR
-        $stockEnAlmacen = $activo->almacenes()
-            ->where('almacen_id', $almacenActual)
-            ->first();
-
-        if (!$stockEnAlmacen || $stockEnAlmacen->pivot->cantidad < $cantidadAccion) {
-            return back()->with('error', "Stock insuficiente. Disponible: " . ($stockEnAlmacen->pivot->cantidad ?? 0));
+            return back()->with('success', "Devolución de $cantidad unidades procesada.");
         }
 
-        Prestamo::create([
-            'fecha_prestado' => Carbon::now(),
-            'activo_id' => $activo->id,
-            'user_id' => Auth::id(),
-            'almacen_prestado_id' => $almacenActual,
-            'almacen_devuelto_id' => null,
-            'cantidad_prestada' => $cantidadAccion,
-            'descripcion' => $request->descripcion
-        ]);
+        // --- LÓGICA DE PRÉSTAMO ---
+        if ($accion === 'prestar') {
+            $stockActual = $activo->almacenes()->where('almacen_id', $almacenId)->first()->pivot->cantidad ?? 0;
 
-        /*$activo->almacenes()->updateExistingPivot($almacenActual, [
-            'cantidad' => $stockEnAlmacen->pivot->cantidad - $cantidadAccion
-        ]);*/
-        //Es mejor asi por que envia la orden directa a la base de datos y bloquea
-        //la fila un instante para restar el numero
-        $activo->almacenes()->updateExistingPivot($almacenActual, [
-            'cantidad' => DB::raw("cantidad - $cantidadAccion")
-        ]);
+            if ($stockActual < $cantidad) {
+                return back()->with('error', "Stock insuficiente. Solo quedan $stockActual unidades.");
+            }
 
-        $activo->decrement('cantidad', $cantidadAccion);
+            // Crear prestamo o aumentar un prestamo
+            if ($prestamoPendiente) {
+                // Si ya existe uno abierto, le sumamos cantidad
+                $prestamoPendiente->increment('cantidad_prestada', $cantidad);
+            } else {
+                Prestamo::create([
+                    'fecha_prestado' => Carbon::now(),
+                    'activo_id' => $activo->id,
+                    'user_id' => Auth::id(),
+                    'almacen_prestado_id' => $almacenId,
+                    'cantidad_prestada' => $cantidad,
+                    'descripcion' => $request->descripcion
+                ]);
+            }
+            $activo->almacenes()->updateExistingPivot($almacenId, [
+                'cantidad' => DB::raw("cantidad - $cantidad")
+            ]);
+            $activo->decrement('cantidad', $cantidad);
 
-        return back()->with('success', 'Préstamo iniciado.');
+            return back()->with('success', "Préstamo de $cantidad unidades realizado.");
+        }
+
+        return back()->with('error', 'Acción no reconocida.');
     }
 }

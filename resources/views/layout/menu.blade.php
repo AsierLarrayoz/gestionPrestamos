@@ -67,27 +67,35 @@
                     </div>
                 </div>
                 @endif
-                <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+                @if(Auth::check() && Auth::user()->permisos?->permiso_incidencias)
+                <div data-kt-menu-trigger="click" class="menu-item menu-accordion {{ request()->routeIs('incidencias.*') || request()->routeIs('niveles.*') ? 'hover show' : '' }}">
+
                     <span class="menu-link">
-                        <span class="menu-icon"><i class="ki-outline ki-archive fs-2"></i></span>
+                        <span class="menu-icon">
+                            <i class="ki-outline ki-flag fs-2"></i> </span>
                         <span class="menu-title">Incidencias</span>
                         <span class="menu-arrow"></span>
                     </span>
+
                     <div class="menu-sub menu-sub-accordion">
+
                         <div class="menu-item">
-                            <a class="menu-link" href="/paginaMaestroIncidencias">
+                            <a class="menu-link {{ request()->routeIs('incidencias.index') ? 'active' : '' }}" href="{{ route('incidencias.index') }}">
                                 <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                                <span class="menu-title">Tipos de incidencias</span>
+                                <span class="menu-title">Listado de Incidencias</span>
                             </a>
                         </div>
+
                         <div class="menu-item">
-                            <a class="menu-link" href="/paginaIncidencias">
+                            <a class="menu-link {{ request()->routeIs('incidencias.create') ? 'active' : '' }}" href="{{ route('incidencias.create') }}">
                                 <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
-                                <span class="menu-title">Incidencias</span>
+                                <span class="menu-title">Reportar Nueva</span>
                             </a>
                         </div>
+
                     </div>
                 </div>
+                @endif
                 @if(Auth::check() && Auth::user()->permisos?->permiso_almacenes)
                 <div class="menu-item">
                     <a class="menu-link" href="{{ route('almacenes.index') }}">

@@ -70,12 +70,16 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['admin:prestamos'])->group(function () {
         Route::get('prestamos/historial', [PrestamoController::class, 'historial'])->name('prestamos.historial');
         Route::resource('prestamos', PrestamoController::class)->except(['show', 'edit', 'update', 'destroy']);
+        Route::get('/activos/check-scan', [PrestamoController::class, 'prestamoCantidad'])->name('activos.prestamoCantidad');
         Route::resource('reservas', ReservaController::class);
     });
 
     // 5. MÓDULO DE INCIDENCIAS (Permiso: incidencias)
     Route::middleware(['admin:incidencias'])->group(function () {
         Route::resource('incidencias', IncidenciaController::class);
+        // Rutas AJAX para creación rápida en Incidencias
+        Route::post('/niveles/quick-store', [App\Http\Controllers\IncidenciaController::class, 'quickStoreNivel'])->name('niveles.quick_store');
+        Route::post('/estados/quick-store', [App\Http\Controllers\IncidenciaController::class, 'quickStoreEstado'])->name('estados.quick_store');
     });
 });
 

@@ -10,13 +10,14 @@ use App\Models\ModelosBasicos\Nivel;
 class Incidencia extends Model
 {
     protected $fillable = [
+        'titulo',
         'descripcion',
         'fecha_incidencia',
         'estado_id',
         'nivel_id',
         'user_id',
         'prestamo_id',
-        'activo:id'
+        'activo_id'
     ];
     public function user()
     {

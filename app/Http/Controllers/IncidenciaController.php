@@ -6,15 +6,15 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Models\Incidencia;
 use App\Models\Activo;
-use App\Models\Nivel;
-use App\Models\Estado;
+use App\Models\ModelosBasicos\Nivel;
+use App\Models\ModelosBasicos\Estado;
 use App\Models\Prestamo;
 
 class IncidenciaController extends Controller
 {
     public function index()
     {
-        $incidencias = Incidencia::with(['activo.modelo', 'usuario', 'estado', 'nivel'])->get();
+        $incidencias = Incidencia::with(['activo.modelo', 'user', 'estado', 'nivel'])->get();
         //Tendre que poner lo de paginate(10)
         return view('incidencias.index', compact('incidencias'));
     }
@@ -24,9 +24,9 @@ class IncidenciaController extends Controller
         $activos = Activo::all();
         $niveles = Nivel::all();
         $estados = Estado::all();
-        $prestamos = Prestamo::all();
-        //Tendre que poner lo de paginate(10)
-        return view('incidencias.create', compact('activos', 'niveles', 'estados'));
+        $prestamos = Prestamo::with('user')
+            ->get();
+        return view('incidencias.create', compact('activos', 'niveles', 'estados', 'prestamos'));
     }
 
     public function store(Request $request)
@@ -84,5 +84,18 @@ class IncidenciaController extends Controller
         $incidencia->delete();
 
         return redirect()->route('incidencias.index')->with('success', 'Incidencia eliminada.');
+    }
+    public function quickStoreNivel(Request $request)
+    {
+        $request->validate(['nivel' => 'required|string|unique:niveles,nivel']);
+        $nivel = Nivel::create($request->all());
+        return response()->json($nivel);
+    }
+
+    public function quickStoreEstado(Request $request)
+    {
+        $request->validate(['estado' => 'required|string|unique:estados,estado']);
+        $estado = Estado::create($request->all());
+        return response()->json($estado);
     }
 }

@@ -56,6 +56,57 @@
         </div>
     </div>
 </div>
+@if(session('abrir_modal'))
+<div class="modal fade show" style="display: block; background: rgba(0,0,0,0.5);" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Gestión de Stock: {{ session('activoOp')->modelo->modelo ?? 'Item' }}</h3>
+                <a href="{{ route('prestamos.create') }}" class="btn btn-icon btn-sm btn-active-light-primary ms-2"><i class="ki-outline ki-cross fs-1"></i></a>
+            </div>
+
+            <form action="{{ route('prestamos.store') }}" method="POST">
+                @csrf
+                <input type="hidden" name="codigo" value="{{ session('codigoActivo') }}">
+                <input type="hidden" name="almacen_id" value="{{ session('almacenActual') }}">
+
+                <div class="modal-body text-center">
+
+                    <div class="d-flex justify-content-center gap-4 mb-5">
+                        <div class="border p-3 rounded">
+                            <small class="text-muted d-block">En Almacén</small>
+                            <span class="fs-2 fw-bold text-success">{{ session('stockActual') }}</span>
+                        </div>
+
+                        @if(session('prestamoExistente'))
+                        <div class="border p-3 rounded bg-light-warning">
+                            <small class="text-muted d-block">Prestado (Pendiente)</small>
+                            <span class="fs-2 fw-bold text-warning">{{ session('cantidadYaPrestada') }}</span>
+                        </div>
+                        @endif
+                    </div>
+
+                    <label class="form-label fw-bold">Cantidad a operar:</label>
+                    <input type="number" name="cantidad_confirmada" class="form-control form-control-solid fs-1 text-center mb-5" value="1" min="1" autofocus required />
+
+                </div>
+
+                <div class="modal-footer justify-content-center">
+                    <button type="submit" name="accion_confirmada" value="prestar" class="btn btn-primary">
+                        <i class="ki-outline ki-plus fs-2"></i> Prestar
+                    </button>
+
+                    @if(session('prestamoExistente'))
+                    <button type="submit" name="accion_confirmada" value="devolver" class="btn btn-danger">
+                        <i class="ki-outline ki-arrow-left fs-2"></i> Devolver
+                    </button>
+                    @endif
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
 @endsection
 
 @section('scripts')
@@ -63,10 +114,8 @@
     document.addEventListener("DOMContentLoaded", function() {
         const input = document.getElementById('input_codigo');
 
-        // Enfocar al cargar
         input.focus();
 
-        // "Trampa de Foco": Si hace clic fuera (excepto en el select), vuelve al input
         document.addEventListener("click", function(e) {
             if (e.target.tagName !== 'SELECT' && e.target.tagName !== 'OPTION') {
                 input.focus();

@@ -166,6 +166,15 @@
                 </div>
                 @endif
             </div>
+            @if(session('error'))
+            <div class="alert alert-dismissible bg-light-danger d-flex flex-column flex-sm-row p-5 mb-10">
+                <i class="ki-outline ki-cross-circle fs-2hx text-danger me-4 mb-5 mb-sm-0"></i>
+                <div class="d-flex flex-column text-start pe-0 pe-sm-10">
+                    <h4 class="fw-semibold">Atención</h4>
+                    <span>{{ session('error') }}</span>
+                </div>
+            </div>
+            @endif
 
             <div class="text-center pt-10">
                 <button type="submit" class="btn btn-warning w-200px">Actualizar Activo</button>

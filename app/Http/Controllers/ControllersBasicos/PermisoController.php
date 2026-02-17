@@ -23,21 +23,24 @@ class PermisoController extends Controller
     {
         // 1. Validamos que los datos lleguen (pueden ser nulos porque son checkboxes)
         $request->validate([
-            'permiso_usuarios'    => 'nullable|boolean',
-            'permiso_activos'     => 'nullable|boolean',
-            'permiso_almacenes'   => 'nullable|boolean',
-            'permiso_incidencias' => 'nullable|boolean',
-            'permiso_prestamos'   => 'nullable|boolean',
+            'nombre_rol' => 'required|string|unique:permisos,nombre_rol|max:50',
         ]);
 
         // 2. Creamos el perfil de permisos
-        // Usamos has() porque si un checkbox no se marca, no viaja en el request
         Permiso::create([
-            'permiso_usuarios'    => $request->has('permiso_usuarios'),
-            'permiso_activos'     => $request->has('permiso_activos'),
-            'permiso_almacenes'   => $request->has('permiso_almacenes'),
-            'permiso_incidencias' => $request->has('permiso_incidencias'),
-            'permiso_prestamos'   => $request->has('permiso_prestamos'),
+            'nombre_rol'             => $request->nombre_rol,
+            'permiso_usuarios_wr'    => $request->has('permiso_usuarios_wr'),
+            'permiso_activos_wr'     => $request->has('permiso_activos_wr'),
+            'permiso_almacenes_wr'   => $request->has('permiso_almacenes_wr'),
+            'permiso_incidencias_wr' => $request->has('permiso_incidencias_wr'),
+            'permiso_prestamos_wr'   => $request->has('permiso_prestamos_wr'),
+            'permiso_reservas_wr'    => $request->has('permiso_reservas_wr'),
+            'permiso_usuarios_r'    => $request->has('permiso_usuarios_r'),
+            'permiso_activos_r'     => $request->has('permiso_activos_r'),
+            'permiso_almacenes_r'   => $request->has('permiso_almacenes_r'),
+            'permiso_incidencias_r' => $request->has('permiso_incidencias_r'),
+            'permiso_prestamos_r'   => $request->has('permiso_prestamos_r'),
+            'permiso_reservas_r'    => $request->has('permiso_reservas_r'),
         ]);
 
         return redirect()->route('permisos.index')->with('success', 'Perfil de permisos creado correctamente.');
@@ -52,25 +55,27 @@ class PermisoController extends Controller
     public function update(Request $request, string $id)
     {
         $permiso = Permiso::findOrFail($id);
-
         $request->validate([
-            'permiso_usuarios'    => 'nullable|boolean',
-            'permiso_activos'     => 'nullable|boolean',
-            'permiso_almacenes'   => 'nullable|boolean',
-            'permiso_incidencias' => 'nullable|boolean',
-            'permiso_prestamos'   => 'nullable|boolean',
+            'nombre_rol' => 'required|string|max:50|unique:permisos,nombre_rol,' . $id,
         ]);
 
-        // Actualizamos cada campo evaluando si el checkbox fue marcado o no
         $permiso->update([
-            'permiso_usuarios'    => $request->has('permiso_usuarios'),
-            'permiso_activos'     => $request->has('permiso_activos'),
-            'permiso_almacenes'   => $request->has('permiso_almacenes'),
-            'permiso_incidencias' => $request->has('permiso_incidencias'),
-            'permiso_prestamos'   => $request->has('permiso_prestamos'),
-        ]);
+            'nombre_rol'             => $request->nombre_rol,
+            'permiso_usuarios_wr'    => $request->has('permiso_usuarios_wr'),
+            'permiso_activos_wr'     => $request->has('permiso_activos_wr'),
+            'permiso_almacenes_wr'   => $request->has('permiso_almacenes_wr'),
+            'permiso_incidencias_wr' => $request->has('permiso_incidencias_wr'),
+            'permiso_prestamos_wr'   => $request->has('permiso_prestamos_wr'),
+            'permiso_reservas_wr'    => $request->has('permiso_reservas_wr'),
+            'permiso_usuarios_r'     => $request->has('permiso_usuarios_r'),
+            'permiso_activos_r'      => $request->has('permiso_activos_r'),
+            'permiso_almacenes_r'    => $request->has('permiso_almacenes_r'),
+            'permiso_incidencias_r'  => $request->has('permiso_incidencias_r'),
+            'permiso_prestamos_r'    => $request->has('permiso_prestamos_r'),
+            'permiso_reservas_r'    => $request->has('permiso_reservas_r'),
 
-        return redirect()->route('permisos.index')->with('success', 'Perfil de permisos actualizado.');
+        ]);
+        return redirect()->route('permisos.index')->with('success', 'Permisos del rol actualizados.');
     }
 
     public function destroy(string $id)

@@ -32,7 +32,7 @@
                         </div>
                     </div>
                 </div>
-                @if(Auth::user()->permisos?->permiso_prestamos)
+                @if(Auth::user()->permisos?->permiso_prestamos_wr || Auth::user()->permisos?->permiso_prestamos_r)
                 <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
                     <span class="menu-link">
                         <span class="menu-icon">
@@ -67,7 +67,7 @@
                     </div>
                 </div>
                 @endif
-                @if(Auth::check() && Auth::user()->permisos?->permiso_incidencias)
+                @if(Auth::check() && Auth::user()->permisos?->permiso_incidencias_wr || Auth::user()->permisos?->permiso_incidencias_r )
                 <div data-kt-menu-trigger="click" class="menu-item menu-accordion {{ request()->routeIs('incidencias.*') || request()->routeIs('niveles.*') ? 'hover show' : '' }}">
 
                     <span class="menu-link">
@@ -96,7 +96,7 @@
                     </div>
                 </div>
                 @endif
-                @if(Auth::check() && Auth::user()->permisos?->permiso_almacenes)
+                @if(Auth::check() && Auth::user()->permisos?->permiso_almacenes_wr || Auth::user()->permisos?->permiso_almacenes_r)
                 <div class="menu-item">
                     <a class="menu-link" href="{{ route('almacenes.index') }}">
                         <span class="menu-icon">
@@ -106,7 +106,7 @@
                     </a>
                 </div>
                 @endif
-                @if(Auth::check() && Auth::user()->permisos?->permiso_activos)
+                @if(Auth::check() && Auth::user()->permisos?->permiso_activos_wr || Auth::user()->permisos?->permiso_activos_r)
                 <div class="menu-item">
                     <a class="menu-link" href="{{ route('activos.index') }}">
                         <span class="menu-icon">
@@ -116,8 +116,7 @@
                     </a>
                 </div>
                 @endif
-                @if(Auth::check() && Auth::user()->permisos?->permiso_prestamos)
-                @if(Auth::check() && Auth::user()->permisos?->permiso_activos)
+                @if(Auth::check() && Auth::user()->permisos?->permiso_prestamos_wr || Auth::user()->permisos?->permiso_prestamos_r)
                 <div class="menu-item">
                     <a class="menu-link" href="{{ route('reservas.index') }}">
                         <span class="menu-icon">
@@ -127,9 +126,7 @@
                     </a>
                 </div>
                 @endif
-                @endif
-                <!-- ESTA OPCION DEL MENU QUE SOLO SALGA AL ALDMIN-->
-                @if(Auth::check() && Auth::user()->permisos?->permiso_usuarios)
+                @if(Auth::check() && Auth::user()->permisos?->permiso_usuarios_wr || Auth::user()->permisos?->permiso_usuarios_r)
                 <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
                     <span class="menu-link">
                         <span class="menu-icon"><i class="ki-outline ki-lock fs-2"></i></span>
@@ -141,6 +138,12 @@
                             <a class="menu-link" href="{{ route('configuracion.index') }}">
                                 <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
                                 <span class="menu-title">Gestionar usuarios</span>
+                            </a>
+                        </div>
+                        <div class="menu-item">
+                            <a class="menu-link" href="{{ route('permisos.index') }}">
+                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                <span class="menu-title">Gestionar roles/permisos</span>
                             </a>
                         </div>
 

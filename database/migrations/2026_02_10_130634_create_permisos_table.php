@@ -13,11 +13,20 @@ return new class extends Migration
     {
         Schema::create('permisos', function (Blueprint $table) {
             $table->id();
-            $table->boolean('permiso_usuarios')->default(false);
-            $table->boolean('permiso_activos')->default(true);
-            $table->boolean('permiso_almacenes')->default(true);
-            $table->boolean('permiso_incidencias')->default(true);
-            $table->boolean('permiso_prestamos')->default(true);
+            $table->string('nombre_rol')->unique();
+            $table->boolean('permiso_usuarios_wr')->default(false);
+            $table->boolean('permiso_activos_wr')->default(true);
+            $table->boolean('permiso_almacenes_wr')->default(true);
+            $table->boolean('permiso_incidencias_wr')->default(true);
+            $table->boolean('permiso_prestamos_wr')->default(true);
+            $table->boolean('permiso_reservas_wr')->default(true);
+
+            $table->boolean('permiso_usuarios_r')->default(false);
+            $table->boolean('permiso_activos_r')->default(true);
+            $table->boolean('permiso_almacenes_r')->default(true);
+            $table->boolean('permiso_incidencias_r')->default(true);
+            $table->boolean('permiso_prestamos_r')->default(true);
+            $table->boolean('permiso_reservas_r')->default(true);
             $table->timestamps();
         });
     }
@@ -27,6 +36,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('roles');
+        Schema::dropIfExists('permisos');
     }
 };

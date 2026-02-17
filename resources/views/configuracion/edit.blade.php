@@ -38,52 +38,25 @@
                 </div>
             </div>
 
-            <div class="row g-9 mb-8">
-                <div class="col-12 fv-row">
-                    <label class="fs-6 fw-bold mb-5">Permisos del Usuario</label>
+            <div class="fv-row mb-8">
+                <label class="fs-6 fw-bold mb-2 required">Rol / Perfil de Permisos</label>
 
-                    <div class="row row-cols-1 row-cols-md-3 g-9">
-                        <div class="col">
-                            <label class="form-check form-check-custom form-check-solid">
-                                <input class="form-check-input h-20px w-20px" type="checkbox" name="permiso_usuarios" value="1"
-                                    {{ old('permiso_usuarios', $usuario->permisos?->permiso_usuarios) ? 'checked' : '' }} />
-                                <span class="form-check-label fw-semibold text-gray-700">Gestión de Usuarios</span>
-                            </label>
-                        </div>
+                <select name="permisos_id" id="permisos_id" class="form-select form-select-solid" data-control="select2" data-placeholder="Selecciona un rol">
+                    <option></option>
+                    @foreach($permisos as $permiso)
+                    <option value="{{ $permiso->id }}" selected="$usuario->permisos->nombre_rol">
+                        {{ $permiso->nombre_rol }}
+                    </option>
+                    @endforeach
+                </select>
 
-                        <div class="col">
-                            <label class="form-check form-check-custom form-check-solid">
-                                <input class="form-check-input h-20px w-20px" type="checkbox" name="permiso_activos" value="1"
-                                    {{ old('permiso_activos', $usuario->permisos?->permiso_activos) ? 'checked' : '' }} />
-                                <span class="form-check-label fw-semibold text-gray-700">Gestión de Activos</span>
-                            </label>
-                        </div>
-
-                        <div class="col">
-                            <label class="form-check form-check-custom form-check-solid">
-                                <input class="form-check-input h-20px w-20px" type="checkbox" name="permiso_almacenes" value="1"
-                                    {{ old('permiso_almacenes', $usuario->permisos?->permiso_almacenes) ? 'checked' : '' }} />
-                                <span class="form-check-label fw-semibold text-gray-700">Gestión de Almacenes</span>
-                            </label>
-                        </div>
-
-                        <div class="col">
-                            <label class="form-check form-check-custom form-check-solid">
-                                <input class="form-check-input h-20px w-20px" type="checkbox" name="permiso_incidencias" value="1"
-                                    {{ old('permiso_incidencias', $usuario->permisos?->permiso_incidencias) ? 'checked' : '' }} />
-                                <span class="form-check-label fw-semibold text-gray-700">Incidencias</span>
-                            </label>
-                        </div>
-
-                        <div class="col">
-                            <label class="form-check form-check-custom form-check-solid">
-                                <input class="form-check-input h-20px w-20px" type="checkbox" name="permiso_prestamos" value="1"
-                                    {{ old('permiso_prestamos', $usuario->permisos?->permiso_prestamos) ? 'checked' : '' }} />
-                                <span class="form-check-label fw-semibold text-gray-700">Préstamos</span>
-                            </label>
-                        </div>
+                <div id="info-permisos" class="mt-5 p-5 bg-light rounded d-none">
+                    <div class="fw-bold mb-2 text-gray-800">Permisos incluidos en este rol:</div>
+                    <div id="lista-permisos" class="d-flex flex-wrap gap-2">
                     </div>
                 </div>
+
+                <div class="form-text text-muted">Al elegir un rol, el usuario heredará automáticamente todos sus permisos.</div>
             </div>
 
             <div class="notice d-flex bg-light-warning rounded border-warning border border-dashed p-6 mb-8">

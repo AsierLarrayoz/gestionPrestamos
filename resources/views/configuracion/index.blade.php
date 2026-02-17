@@ -26,7 +26,7 @@
                         <!--<th class="min-w-50px">ID</th>-->
                         <th class="min-w-125px">Usuario</th>
                         <th class="min-w-125px">Email</th>
-                        <th class="min-w-125px">Permisos Activos</th>
+                        <th class="min-w-125px">Rol/Permisos</th>
                         <th class="text-end min-w-100px">Acciones</th>
                     </tr>
                 </thead>
@@ -47,29 +47,7 @@
                         <td>{{ $user->email }}</td>
                         <td>
                             <div class="d-flex flex-wrap gap-1">
-                                @if($user->permisos?->permiso_usuarios)
-                                <span class="badge badge-light-danger fw-bold fs-9">Usuarios</span>
-                                @endif
-
-                                @if($user->permisos?->permiso_activos)
-                                <span class="badge badge-light-primary fw-bold fs-9">Activos</span>
-                                @endif
-
-                                @if($user->permisos?->permiso_almacenes)
-                                <span class="badge badge-light-info fw-bold fs-9">Almacenes</span>
-                                @endif
-
-                                @if($user->permisos?->permiso_prestamos)
-                                <span class="badge badge-light-success fw-bold fs-9">Préstamos</span>
-                                @endif
-
-                                @if($user->permisos?->permiso_incidencias)
-                                <span class="badge badge-light-warning fw-bold fs-9">Incidencias</span>
-                                @endif
-
-                                @if(!$user->permisos || (!$user->permisos->permiso_usuarios && !$user->permisos->permiso_activos && !$user->permisos->permiso_almacenes && !$user->permisos->permiso_prestamos && !$user->permisos->permiso_incidencias))
-                                <span class="badge badge-light-dark fw-bold fs-9">Sin Acceso</span>
-                                @endif
+                                <span class="text-gray-800 text-hover-primary mb-1">{{ $user->permisos->nombre_rol }}</span>
                             </div>
                         </td>
                         <td class="text-end">

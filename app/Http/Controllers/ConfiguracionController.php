@@ -30,18 +30,12 @@ class ConfiguracionController extends Controller
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
-        $nuevoPerfil = Permiso::create([
-            'permiso_usuarios'    => $request->has('permiso_usuarios'),
-            'permiso_activos'     => $request->has('permiso_activos'),
-            'permiso_almacenes'   => $request->has('permiso_almacenes'),
-            'permiso_incidencias' => $request->has('permiso_incidencias'),
-            'permiso_prestamos'   => $request->has('permiso_prestamos'),
-        ]);
+
         User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'permisos_id' => $nuevoPerfil->id,
+            'permisos_id' => $request->permisos_id
         ]);
 
         return redirect()->route('configuracion.index')->with('success', 'Usuario creado correctamente.');
@@ -62,29 +56,24 @@ class ConfiguracionController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $usuario->id],
             'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
+            'permisos_id' => ['required', 'exists:permisos,id'],
         ]);
 
         $usuario->name = $request->name;
         $usuario->email = $request->email;
+
+        // Evitar que el usuario se bloquee a sí mismo
+        if (Auth::id() == $usuario->id && $request->permisos_id != $usuario->permisos_id) {
+            return back()->with('error', 'No puedes cambiar tu propio rol.');
+        }
+
+        $usuario->permisos_id = $request->permisos_id;
 
         if ($request->filled('password')) {
             $usuario->password = Hash::make($request->password);
         }
 
         $usuario->save();
-        if ($usuario->permisos) {
-            $permisoUsuarios = $request->has('permiso_usuarios');
-            if (Auth::id() == $usuario->id) {
-                $permisoUsuarios = true;
-            }
-            $usuario->permisos->update([
-                'permiso_usuarios'    => $permisoUsuarios,
-                'permiso_activos'     => $request->has('permiso_activos'),
-                'permiso_almacenes'   => $request->has('permiso_almacenes'),
-                'permiso_incidencias' => $request->has('permiso_incidencias'),
-                'permiso_prestamos'   => $request->has('permiso_prestamos'),
-            ]);
-        }
 
         return redirect()->route('configuracion.index')->with('success', 'Usuario actualizado correctamente.');
     }

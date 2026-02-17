@@ -83,7 +83,7 @@
         let titulo = tipo === 'nivel' ? 'Nuevo Nivel de Gravedad' : 'Nuevo Estado';
         let ruta = tipo === 'nivel' ? '{{ route("niveles.quick_store") }}' : '{{ route("estados.quick_store") }}';
         let selectId = tipo === 'nivel' ? 'select_nivel' : 'select_estado';
-        let campoNombre = tipo; // 'nivel' o 'estado'
+        let campoNombre = tipo;
 
         Swal.fire({
             title: titulo,
@@ -94,8 +94,6 @@
             showLoaderOnConfirm: true,
             preConfirm: (valor) => {
                 if (!valor) Swal.showValidationMessage('Debes escribir un nombre');
-
-                // Preparamos datos
                 let data = {
                     _token: '{{ csrf_token() }}'
                 };
@@ -119,7 +117,7 @@
             }
         }).then((result) => {
             if (result.isConfirmed) {
-                // Agregamos la nueva opción al Select y la seleccionamos
+
                 let data = result.value;
                 let nuevaOpcion = new Option(data[campoNombre], data.id, true, true);
                 document.getElementById(selectId).add(nuevaOpcion);

@@ -32,79 +32,84 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/dashboard', [HomeController::class, 'index'])->name('dashboard');
 
-    // 1. MÓDULO DE USUARIOS Y CONFIGURACIÓN (Permiso: usuarios)
-    Route::middleware(['admin:usuarios'])->group(function () {
-        Route::resource('usuarios', ConfiguracionController::class)->names('configuracion');
-        Route::resource('permisos', PermisoController::class); // Antes llamado 'roles'
+    // USUARIOS Y CONFIGURACIÓN
+    Route::middleware(['admin:usuarios_wr'])->group(function () {
+        Route::post('/usuarios', [ConfiguracionController::class, 'store'])->name('configuracion.store');
+        Route::put('/usuarios/{usuario}', [ConfiguracionController::class, 'update'])->name('configuracion.update');
+        Route::delete('/usuarios/{usuario}', [ConfiguracionController::class, 'destroy'])->name('configuracion.destroy');
+
+        Route::post('/permisos', [PermisoController::class, 'store'])->name('permisos.store');
+        Route::put('/permisos/{permiso}', [PermisoController::class, 'update'])->name('permisos.update');
+        Route::delete('/permisos/{permiso}', [PermisoController::class, 'destroy'])->name('permisos.destroy');
+    });
+    Route::middleware(['admin:usuarios_r'])->group(function () {
+        Route::resource('usuarios', ConfiguracionController::class)->except('store', 'update', 'destroy')->names('configuracion');
+        Route::resource('permisos', PermisoController::class)->except('store', 'update', 'destroy');
     });
 
-    // 2. MÓDULO DE ALMACENES (Permiso: almacenes)
-    Route::middleware(['admin:almacenes'])->group(function () {
-        Route::resource('almacenes', AlmacenController::class);
+    //ALMACENES
+    Route::middleware(['admin:almacenes_wr'])->group(function () {
+        Route::post('/almacenes', [AlmacenController::class, 'store'])->name('almacenes.store');
+        Route::put('/almacenes/{almacene}', [AlmacenController::class, 'update'])->name('almacenes.update');
+        Route::delete('/almacenes/{almacene}', [AlmacenController::class, 'destroy'])->name('almacenes.destroy');
+    });
+    Route::middleware(['admin:almacenes_r'])->group(function () {
+        Route::resource('almacenes', AlmacenController::class)->except('store', 'update', 'delete');
     });
 
-    // 3. MÓDULO DE ACTIVOS E INVENTARIO (Permiso: activos)
-    Route::middleware(['admin:activos'])->group(function () {
-        Route::resource('activos', ActivoController::class);
+    //ACTIVOS
+    Route::middleware(['admin:activos_wr'])->group(function () {
+        //Route::get('/activos/create', [ActivoController::class, 'create'])->name('activos.create');
+        Route::post('/activos', [ActivoController::class, 'store'])->name('activos.store');
+        //Route::get('/activos/edit', [ActivoController::class, 'edit'])->name('activos.edit');
+        Route::put('/activos/{activo}', [ActivoController::class, 'update'])->name('activos.update');
+        Route::delete('/activos/{activo}', [ActivoController::class, 'destroy'])->name('activos.destroy');
 
-        // Auxiliares de Activos
         Route::resource('marcas', MarcaController::class);
         Route::resource('modelos', ModeloController::class);
         Route::resource('tipos', TipoController::class);
         Route::resource('niveles', NivelController::class);
         Route::resource('salud', SaludController::class);
         Route::resource('estados', EstadoController::class);
-        Route::get('/activos/{id}/print-qr', [ActivoController::class, 'printQr'])->name('activos.print-qr');
 
-        // Rutas AJAX para modales en creación de activos
         Route::post('/marcas/quick-store', [ActivoController::class, 'quickStoreMarca'])->name('marcas.quickStore');
         Route::post('/modelos/quick-store', [ActivoController::class, 'quickStoreModelo'])->name('modelos.quickStore');
         Route::post('/tipos/quick-store', [ActivoController::class, 'quickStoreTipo'])->name('tipos.quickStore');
         Route::post('/salud/quick-store', [ActivoController::class, 'quickStoreSalud'])->name('salud.quickStore');
 
-        // Carga dinámica de modelos
         Route::get('/get-modelos/{id}', [ActivoController::class, 'getModelosByMarca'])->name('activos.getModelos');
     });
-
-    // 4. MÓDULO DE PRÉSTAMOS (Permiso: prestamos)
-    Route::middleware(['admin:prestamos'])->group(function () {
-        Route::get('prestamos/historial', [PrestamoController::class, 'historial'])->name('prestamos.historial');
-        Route::resource('prestamos', PrestamoController::class)->except(['show', 'edit', 'update', 'destroy']);
-        Route::get('/activos/check-scan', [PrestamoController::class, 'prestamoCantidad'])->name('activos.prestamoCantidad');
-        Route::resource('reservas', ReservaController::class);
+    Route::middleware(['admin:activos_r'])->group(function () {
+        Route::resource('activos', ActivoController::class)->except('store', 'update', 'destroy');
+        Route::get('/activos/{id}/print-qr', [ActivoController::class, 'printQr'])->name('activos.print-qr');
     });
 
+
+    // 4. MÓDULO DE PRÉSTAMOS (Permiso: prestamos)
+    Route::middleware(['admin:prestamos_wr'])->group(function () {
+        Route::post('/prestamos', [PrestamoController::class, 'store'])->name('prestamos.store');
+        Route::resource('reservas', ReservaController::class);
+    });
+    Route::middleware(['admin:prestamos_r'])->group(function () {
+        Route::get('prestamos/historial', [PrestamoController::class, 'historial'])->name('prestamos.historial');
+        Route::get('/activos/check-scan', [PrestamoController::class, 'prestamoCantidad'])->name('activos.prestamoCantidad');
+        Route::resource('prestamos', PrestamoController::class)->except(['show', 'edit', 'update', 'destroy', 'store']);
+    });
+
+
     // 5. MÓDULO DE INCIDENCIAS (Permiso: incidencias)
-    Route::middleware(['admin:incidencias'])->group(function () {
-        Route::resource('incidencias', IncidenciaController::class);
-        // Rutas AJAX para creación rápida en Incidencias
+    Route::middleware(['admin:incidencias_wr'])->group(function () {
+        Route::post('/incidencias', [IncidenciaController::class, 'store'])->name('incidencias.store');
+        Route::delete('/incidencias/{incidencia}', [IncidenciaController::class, 'destroy'])->name('incidencias.destroy');
+        Route::put('/incidencias/{incidencia}', [IncidenciaController::class, 'update'])->name('incidencias.update');
         Route::post('/niveles/quick-store', [App\Http\Controllers\IncidenciaController::class, 'quickStoreNivel'])->name('niveles.quick_store');
         Route::post('/estados/quick-store', [App\Http\Controllers\IncidenciaController::class, 'quickStoreEstado'])->name('estados.quick_store');
     });
+    Route::middleware(['admin:incidencias_r'])->group(function () {
+        Route::resource('incidencias', IncidenciaController::class)->except('store', 'update', 'destroy');
+    });
 });
 
-// --- RUTA DE INSTALACIÓN (DESCOMENTAR SOLO SI ES NECESARIO) ---
-/*
-Route::get('/instalar-admin', function () {
-    $permisosAdmin = Permiso::firstOrCreate([
-        'permiso_usuarios'    => true,
-        'permiso_activos'     => true,
-        'permiso_almacenes'   => true,
-        'permiso_incidencias' => true,
-        'permiso_prestamos'   => true,
-    ]);
 
-    User::firstOrCreate(
-        ['email' => 'admin@admin.com'],
-        [
-            'name'        => 'Asier',
-            'password'    => Hash::make('12345678'),
-            'permisos_id' => $permisosAdmin->id
-        ]
-    );
-
-    return "Admin instalado.";
-});
-*/
 
 require __DIR__ . '/auth.php';

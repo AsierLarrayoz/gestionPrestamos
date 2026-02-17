@@ -20,16 +20,19 @@ class AdminMiddleware
             return redirect('/login');
         }
 
-        // Si entramos a una ruta protegida sin especificar el módulo, denegamos por seguridad
+        $user = Auth::user();
+
         if (!$modulo) {
-            return redirect('/dashboard')->with('error', 'Error de configuración de seguridad.');
+            return redirect('/dashboard')->with('error', 'Módulo de seguridad no especificado.');
         }
 
-        $permisos = Auth::user()->permisos;
+        $permisos = $user->permisos;
         $campoPermiso = "permiso_" . $modulo;
+        if (!$permisos || !isset($permisos->$campoPermiso) || !$permisos->$campoPermiso) {
 
-        if (!$permisos || !$permisos->$campoPermiso) {
-            return redirect('/dashboard')->with('error', "No tienes acceso al módulo de " . ucfirst($modulo));
+            $nombreLimpio = str_replace(['_r', '_wr'], '', $modulo);
+
+            return redirect('/dashboard')->with('error', "No tienes permiso de acceso/escritura en: " . ucfirst($nombreLimpio));
         }
 
         return $next($request);

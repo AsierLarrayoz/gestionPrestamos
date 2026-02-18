@@ -34,6 +34,7 @@ class LectorController extends Controller
     public function edit(string $id)
     {
         $almacenes = Almacen::all();
+        $lector = Lector::findOrFail($id);
         return view('lectores.edit', compact('almacenes', 'lector'));
     }
     public function update(Request $request, string $id)
@@ -41,13 +42,14 @@ class LectorController extends Controller
         $lector = Lector::findOrFail($id);
 
         $validatedData = $request->validate([
-            'nombre' => 'required|string|unique:lectores,nombre|max:255',
-            'identificador_unico' => 'required|integer|unique:lectores,identificador_unico|min:1',
+            'nombre' => 'required|string|max:255|unique:lectores,nombre,' . $lector->id,
+            'identificador_unico' => 'required|string|min:1|unique:lectores,identificador_unico,' . $lector->id,
             'almacen_id' => 'required|exists:almacenes,id',
             'tipo' => 'nullable|string|max:255'
         ]);
 
         $lector->update($validatedData);
+        return redirect()->route('lectores.index')->with('success', 'Lector actualizado correctamente.');
     }
     public function destroy(string $id)
     {

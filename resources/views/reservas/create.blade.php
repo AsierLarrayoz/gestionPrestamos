@@ -45,10 +45,12 @@
             </div>
 
             <div class="d-flex justify-content-end">
+                @if(Auth::user()->hasPermission('reservas.escribir'))
                 <a href="{{ route('reservas.index') }}" class="btn btn-light me-3">Cancelar</a>
                 <button type="submit" class="btn btn-primary">
                     <i class="ki-outline ki-calendar-add fs-2"></i> Planificar Reserva
                 </button>
+                @endif
             </div>
         </form>
     </div>

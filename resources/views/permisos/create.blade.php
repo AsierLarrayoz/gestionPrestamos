@@ -45,6 +45,7 @@
                             'incidencias' => 'Incidencias',
                             'prestamos' => 'Préstamos',
                             'reservas' => 'Reservas',
+                            'lectores' => 'Lectores',
                             'logs' => 'Logs del Sistema',
                             ];
 
@@ -59,8 +60,6 @@
                                 <td class="text-gray-800 fw-bold">
                                     {{ $nombresModulos[$key] ?? ucfirst($key) }}
                                 </td>
-
-                                {{-- Buscamos el permiso .leer dentro del grupo --}}
                                 @php $pLeer = $permisosGrupo->firstWhere('name', $key . '.leer'); @endphp
                                 <td class="text-center bg-light bg-opacity-10">
                                     @if($pLeer)
@@ -72,8 +71,6 @@
                                     </label>
                                     @endif
                                 </td>
-
-                                {{-- Buscamos el permiso .escribir dentro del grupo --}}
                                 @php $pEscribir = $permisosGrupo->firstWhere('name', $key . '.escribir'); @endphp
                                 <td class="text-center bg-light bg-opacity-10">
                                     @if($pEscribir)

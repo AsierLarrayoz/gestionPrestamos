@@ -90,7 +90,7 @@
                     <input type="number" name="cantidad_confirmada" class="form-control form-control-solid fs-1 text-center mb-5" value="1" min="1" autofocus required />
 
                 </div>
-
+                @if(Auth::user()->hasPermission('prestamos.escribir'))
                 <div class="modal-footer justify-content-center">
                     <button type="submit" name="accion_confirmada" value="prestar" class="btn btn-primary">
                         <i class="ki-outline ki-plus fs-2"></i> Prestar
@@ -102,6 +102,7 @@
                     </button>
                     @endif
                 </div>
+                @endif
             </form>
         </div>
     </div>

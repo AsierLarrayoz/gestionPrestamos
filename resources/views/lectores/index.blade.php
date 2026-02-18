@@ -9,11 +9,13 @@
                 <input type="text" data-kt-lector-table-filter="search" class="form-control form-control-solid w-250px ps-13" placeholder="Buscar activo..." />
             </div>
         </div>
+        @if(Auth::user()->hasPermission('lectores.escribir'))
         <div class="card-toolbar">
             <a href="{{ route('lectores.create') }}" class="btn btn-primary">
                 <i class="ki-outline ki-plus fs-2"></i> Nuevo Lector
             </a>
         </div>
+        @endif
     </div>
 
     <div class="card-body py-4">

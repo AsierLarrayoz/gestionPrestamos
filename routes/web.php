@@ -26,12 +26,7 @@ use App\Http\Controllers\ControllersBasicos\PermisoController;
 Route::get('/', function () {
     return Auth::check() ? redirect()->route('dashboard') : redirect()->route('login');
 });
-Route::get('/lectores', [LectorController::class, 'index'])->name('lectores.index');
-Route::get('/lectores/create', [LectorController::class, 'create'])->name('lectores.create');
-Route::post('/lectores', [LectorController::class, 'store'])->name('lectores.store');
-Route::get('/lectores/{id}/edit', [LectorController::class, 'edit'])->name('lectores.edit');
-Route::put('/lectores/{id}', [LectorController::class, 'update'])->name('lectores.update');
-Route::delete('/lectores/{lector}', [LectorController::class, 'destroy'])->name('lectores.destroy');
+
 
 
 // --- SOLO USUARIOS LOGUEADOS ---
@@ -131,6 +126,16 @@ Route::middleware(['auth'])->group(function () {
     });
     Route::middleware(['admin:incidencias.leer'])->group(function () {
         Route::resource('incidencias', IncidenciaController::class)->except(['store', 'update', 'destroy']);
+    });
+    Route::middleware(['auth', 'admin:lectores.escribir'])->group(function () {
+        Route::post('/lectores', [LectorController::class, 'store'])->name('lectores.store');
+        Route::put('/lectores/{id}', [LectorController::class, 'update'])->name('lectores.update');
+        Route::delete('/lectores/{lector}', [LectorController::class, 'destroy'])->name('lectores.destroy');
+    });
+    Route::middleware(['auth', 'admin:lectores.leer'])->group(function () {
+        Route::get('/lectores', [LectorController::class, 'index'])->name('lectores.index');
+        Route::get('/lectores/create', [LectorController::class, 'create'])->name('lectores.create');
+        Route::get('/lectores/{id}/edit', [LectorController::class, 'edit'])->name('lectores.edit');
     });
 }); // Fin Middleware Auth
 

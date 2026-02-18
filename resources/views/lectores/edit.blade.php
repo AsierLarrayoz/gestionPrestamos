@@ -47,10 +47,11 @@
                     </select>
                 </div>
             </div>
-
+            @if(Auth::user()->hasPermission('lectores.escribir'))
             <div class="text-center pt-10">
                 <button type="submit" class="btn btn-primary w-200px">Actualizar Lector</button>
             </div>
+            @endif
         </form>
     </div>
 </div>

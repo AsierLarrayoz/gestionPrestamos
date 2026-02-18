@@ -41,8 +41,8 @@
                         'incidencias' => 'Incidencias',
                         'prestamos' => 'Préstamos',
                         'reservas' => 'Reservas',
+                        'lectores' => 'Lectores',
                         'logs' => 'Logs del Sistema',
-                        'lectores' => 'Gestion de lectores'
                         ];
 
                         // Agrupamos permisos disponibles

@@ -11,8 +11,6 @@
     <div class="app-sidebar-wrapper">
         <div id="kt_app_sidebar_wrapper" class="hover-scroll-y my-5 my-lg-2 mx-4" data-kt-scroll="true" data-kt-scroll-activate="{default: true, lg: true}" data-kt-scroll-height="auto" data-kt-scroll-dependencies="#kt_app_header,#kt_app_sidebar_user,#kt_app_sidebar_fichaje" data-kt-scroll-wrappers="#kt_app_sidebar_wrapper" data-kt-scroll-offset="0px" style="height: 267px;">
             <div id="kt_app_sidebar_menu" data-kt-menu="true" data-kt-menu-expand="false" class="app-sidebar-menu-primary menu menu-column menu-rounded menu-sub-indention menu-state-bullet-primary px-3 mb-5" style="padding-bottom: 100px;">
-
-                {{-- INICIO --}}
                 <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
                     <span class="menu-link">
                         <span class="menu-icon"><i class="ki-outline ki-home fs-2"></i></span>
@@ -34,8 +32,6 @@
                         </div>
                     </div>
                 </div>
-
-                {{-- PRÉSTAMOS --}}
                 @if(Auth::user()->hasPermission('prestamos.leer') || Auth::user()->hasPermission('prestamos.escribir'))
                 <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
                     <span class="menu-link">
@@ -68,8 +64,6 @@
                     </div>
                 </div>
                 @endif
-
-                {{-- INCIDENCIAS --}}
                 @if(Auth::user()->hasPermission('incidencias.leer') || Auth::user()->hasPermission('incidencias.escribir'))
                 <div data-kt-menu-trigger="click" class="menu-item menu-accordion {{ request()->routeIs('incidencias.*') || request()->routeIs('niveles.*') ? 'hover show' : '' }}">
                     <span class="menu-link">
@@ -95,8 +89,6 @@
                     </div>
                 </div>
                 @endif
-
-                {{-- ALMACENES --}}
                 @if(Auth::user()->hasPermission('almacenes.leer') || Auth::user()->hasPermission('almacenes.escribir'))
                 <div class="menu-item">
                     <a class="menu-link" href="{{ route('almacenes.index') }}">
@@ -107,8 +99,6 @@
                     </a>
                 </div>
                 @endif
-
-                {{-- ACTIVOS --}}
                 @if(Auth::user()->hasPermission('activos.leer') || Auth::user()->hasPermission('activos.escribir'))
                 <div class="menu-item">
                     <a class="menu-link" href="{{ route('activos.index') }}">
@@ -119,8 +109,6 @@
                     </a>
                 </div>
                 @endif
-
-                {{-- RESERVAS (Ahora tiene sus propios permisos) --}}
                 @if(Auth::user()->hasPermission('reservas.leer') || Auth::user()->hasPermission('reservas.escribir'))
                 <div class="menu-item">
                     <a class="menu-link" href="{{ route('reservas.index') }}">
@@ -131,9 +119,6 @@
                     </a>
                 </div>
                 @endif
-
-                {{-- ADMIN (Usuarios, Roles y Logs) --}}
-                {{-- Mostramos el menú Admin si tiene acceso a usuarios O a logs --}}
                 @if(Auth::user()->hasPermission('usuarios.leer') || Auth::user()->hasPermission('usuarios.escribir') || Auth::user()->hasPermission('logs.leer'))
                 <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
                     <span class="menu-link">
@@ -142,8 +127,6 @@
                         <span class="menu-arrow"></span>
                     </span>
                     <div class="menu-sub menu-sub-accordion">
-
-                        {{-- Solo si puede ver usuarios --}}
                         @if(Auth::user()->hasPermission('usuarios.leer') || Auth::user()->hasPermission('usuarios.escribir'))
                         <div class="menu-item">
                             <a class="menu-link" href="{{ route('configuracion.index') }}">
@@ -151,7 +134,6 @@
                                 <span class="menu-title">Gestionar usuarios</span>
                             </a>
                         </div>
-
                         <div class="menu-item">
                             <a class="menu-link" href="{{ route('permisos.index') }}">
                                 <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
@@ -159,8 +141,6 @@
                             </a>
                         </div>
                         @endif
-
-                        {{-- Solo si puede ver logs --}}
                         @if(Auth::user()->hasPermission('logs.leer'))
                         <div class="menu-item">
                             <a class="menu-link" href="{{ route('logs.index') }}">
@@ -169,12 +149,14 @@
                             </a>
                         </div>
                         @endif
+                        @if(Auth::user()->hasPermission('lectores.leer') || Auth::user()->hasPermission('lectores.escribir'))
                         <div class="menu-item">
                             <a class="menu-link" href="{{ route('lectores.index') }}">
                                 <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
                                 <span class="menu-title">Gestionar lectores</span>
                             </a>
                         </div>
+                        @endif
 
                     </div>
                 </div>

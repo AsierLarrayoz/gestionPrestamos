@@ -10,9 +10,11 @@
             </div>
         </div>
         <div class="card-toolbar">
+            @if(Auth::user()->hasPermission('almacenes.escribir'))
             <a href="{{ route('almacenes.create') }}" class="btn btn-primary">
                 <i class="ki-outline ki-plus fs-2"></i> Nuevo Almacén
             </a>
+            @endif
         </div>
     </div>
 
@@ -48,6 +50,7 @@
                             <a href="{{ route('almacenes.show', $almacen->id) }}" class="btn btn-icon btn-bg-light btn-active-color-info btn-sm me-1" title="Ver Inventario">
                                 <i class="ki-outline ki-eye fs-2"></i>
                             </a>
+                            @if(Auth::user()->hasPermission('almacenes.escribir'))
                             <a href="{{ route('almacenes.edit', $almacen->id) }}" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1" title="Editar">
                                 <i class="ki-outline ki-pencil fs-2"></i>
                             </a>
@@ -61,6 +64,7 @@
                                 @csrf
                                 @method('DELETE')
                             </form>
+                            @endif
                         </td>
                     </tr>
                     @endforeach

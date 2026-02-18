@@ -7,9 +7,11 @@
             <h3 class="fw-bold">Roles y Permisos</h3>
         </div>
         <div class="card-toolbar">
+            @if(Auth::user()->hasPermission('roles.escribir'))
             <a href="{{ route('permisos.create') }}" class="btn btn-primary">
                 <i class="ki-outline ki-shield-tick fs-2"></i> Crear Nuevo Rol
             </a>
+            @endif
         </div>
     </div>
 

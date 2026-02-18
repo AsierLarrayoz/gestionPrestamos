@@ -91,10 +91,11 @@
                 <label class="form-label fw-bold">Descripción</label>
                 <textarea name="descripcion" class="form-control form-control-solid" rows="4"></textarea>
             </div>
-
+            @if(Auth::user()->hasPermission('incidencias.escribir'))
             <div class="d-flex justify-content-end">
                 <button type="submit" class="btn btn-danger">Registrar Incidencia</button>
             </div>
+            @endif
         </form>
     </div>
 </div>

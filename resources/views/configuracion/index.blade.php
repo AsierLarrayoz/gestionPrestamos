@@ -11,9 +11,11 @@
         </div>
         <div class="card-toolbar">
             <div class="d-flex justify-content-end">
+                @if(Auth::user()->hasPermission('usuarios.escribir'))
                 <a href="{{ route('configuracion.create') }}" class="btn btn-primary">
                     <i class="ki-outline ki-plus fs-2"></i> Añadir Usuario
                 </a>
+                @endif
             </div>
         </div>
     </div>
@@ -53,7 +55,9 @@
                                 @endforelse
                             </div>
                         </td>
+
                         <td class="text-end">
+                            @if(Auth::user()->hasPermission('usuarios.escribir'))
                             <a href="{{ route('configuracion.edit', $user->id) }}" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1" title="Editar">
                                 <i class="ki-outline ki-pencil fs-2"></i>
                             </a>
@@ -67,7 +71,9 @@
                                 @csrf
                                 @method('DELETE')
                             </form>
+                            @endif
                         </td>
+
                     </tr>
                     @endforeach
                 </tbody>

@@ -10,9 +10,11 @@
             </div>
         </div>
         <div class="card-toolbar">
+            @if(Auth::user()->hasPermission('incidencias.escribir'))
             <a href="{{ route('incidencias.create') }}" class="btn btn-primary">
                 <i class="ki-outline ki-plus-square fs-2"></i> Reportar Incidencia
             </a>
+            @endif
         </div>
     </div>
 

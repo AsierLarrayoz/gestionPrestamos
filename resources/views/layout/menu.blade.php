@@ -146,6 +146,12 @@
                                 <span class="menu-title">Gestionar roles/permisos</span>
                             </a>
                         </div>
+                        <div class="menu-item">
+                            <a class="menu-link" href="{{ route('logs.index') }}">
+                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                <span class="menu-title">Ver logs</span>
+                            </a>
+                        </div>
 
                     </div>
                 </div>

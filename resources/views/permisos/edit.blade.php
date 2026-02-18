@@ -36,6 +36,7 @@
                         'almacenes' => 'Almacenes',
                         'incidencias' => 'Incidencias y Reportes',
                         'prestamos' => 'Préstamos y Devoluciones',
+                        'log' => ' Logs de los requests'
                         ];
                         @endphp
 

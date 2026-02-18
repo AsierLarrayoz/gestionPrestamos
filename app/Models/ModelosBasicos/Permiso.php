@@ -23,6 +23,7 @@ class Permiso extends Model
         'permiso_incidencias_r',
         'permiso_prestamos_r',
         'permiso_reservas_r',
+        'permiso_log_r'
 
     ];
     public function users()

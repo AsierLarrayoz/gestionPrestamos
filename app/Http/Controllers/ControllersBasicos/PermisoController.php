@@ -41,6 +41,7 @@ class PermisoController extends Controller
             'permiso_incidencias_r' => $request->has('permiso_incidencias_r'),
             'permiso_prestamos_r'   => $request->has('permiso_prestamos_r'),
             'permiso_reservas_r'    => $request->has('permiso_reservas_r'),
+            'permiso_log_r'         => $request->has('permiso_log_r'),
         ]);
 
         return redirect()->route('permisos.index')->with('success', 'Perfil de permisos creado correctamente.');
@@ -58,7 +59,6 @@ class PermisoController extends Controller
         $request->validate([
             'nombre_rol' => 'required|string|max:50|unique:permisos,nombre_rol,' . $id,
         ]);
-
         $permiso->update([
             'nombre_rol'             => $request->nombre_rol,
             'permiso_usuarios_wr'    => $request->has('permiso_usuarios_wr'),
@@ -73,7 +73,7 @@ class PermisoController extends Controller
             'permiso_incidencias_r'  => $request->has('permiso_incidencias_r'),
             'permiso_prestamos_r'    => $request->has('permiso_prestamos_r'),
             'permiso_reservas_r'    => $request->has('permiso_reservas_r'),
-
+            'permiso_log_r'         => $request->has('permiso_log_r')
         ]);
         return redirect()->route('permisos.index')->with('success', 'Permisos del rol actualizados.');
     }

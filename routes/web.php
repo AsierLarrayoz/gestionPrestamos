@@ -18,20 +18,29 @@ use App\Http\Controllers\ControllersBasicos\SaludController;
 use App\Http\Controllers\ControllersBasicos\EstadoController;
 use App\Http\Controllers\ControllersBasicos\PermisoController;
 use App\Http\Controllers\ConfiguracionController;
+use App\Http\Controllers\RequestLogController;
 use App\Http\Controllers\ReservaController;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 
-// --- RUTAS PÚBLICAS / REDIRECCIÓN ---
+//RUTAS PÚBLICAS
 Route::get('/', function () {
     return Auth::check() ? redirect()->route('dashboard') : redirect()->route('login');
 });
 
-// --- RUTAS PROTEGIDAS (SOLO LOGUEADOS) ---
+Route::get('/error', function () {
+    throw new \Exception('Test error 500');
+});
+
+//Solo para logueados
 Route::middleware(['auth'])->group(function () {
 
     Route::get('/dashboard', [HomeController::class, 'index'])->name('dashboard');
 
+    // 
+    Route::middleware(['admin:log_r'])->group(function () {
+        Route::get('/logs', [RequestLogController::class, 'index'])->name('logs.index');
+    });
     // USUARIOS Y CONFIGURACIÓN
     Route::middleware(['admin:usuarios_wr'])->group(function () {
         Route::post('/usuarios', [ConfiguracionController::class, 'store'])->name('configuracion.store');
@@ -59,9 +68,7 @@ Route::middleware(['auth'])->group(function () {
 
     //ACTIVOS
     Route::middleware(['admin:activos_wr'])->group(function () {
-        //Route::get('/activos/create', [ActivoController::class, 'create'])->name('activos.create');
         Route::post('/activos', [ActivoController::class, 'store'])->name('activos.store');
-        //Route::get('/activos/edit', [ActivoController::class, 'edit'])->name('activos.edit');
         Route::put('/activos/{activo}', [ActivoController::class, 'update'])->name('activos.update');
         Route::delete('/activos/{activo}', [ActivoController::class, 'destroy'])->name('activos.destroy');
 
@@ -85,7 +92,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
 
-    // 4. MÓDULO DE PRÉSTAMOS (Permiso: prestamos)
+    //PRÉSTAMOS
     Route::middleware(['admin:prestamos_wr'])->group(function () {
         Route::post('/prestamos', [PrestamoController::class, 'store'])->name('prestamos.store');
         Route::resource('reservas', ReservaController::class);
@@ -97,7 +104,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
 
-    // 5. MÓDULO DE INCIDENCIAS (Permiso: incidencias)
+    //INCIDENCIAS
     Route::middleware(['admin:incidencias_wr'])->group(function () {
         Route::post('/incidencias', [IncidenciaController::class, 'store'])->name('incidencias.store');
         Route::delete('/incidencias/{incidencia}', [IncidenciaController::class, 'destroy'])->name('incidencias.destroy');

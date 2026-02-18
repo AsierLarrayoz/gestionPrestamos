@@ -27,6 +27,7 @@ return new class extends Migration
             $table->boolean('permiso_incidencias_r')->default(true);
             $table->boolean('permiso_prestamos_r')->default(true);
             $table->boolean('permiso_reservas_r')->default(true);
+            $table->boolean('permiso_log_r')->default(true);
             $table->timestamps();
         });
     }

@@ -31,4 +31,8 @@ class Almacen extends Model
     {
         return $this->hasMany(Prestamo::class);
     }
+    public function lectores()
+    {
+        return $this->hasMany(Lector::class);
+    }
 }

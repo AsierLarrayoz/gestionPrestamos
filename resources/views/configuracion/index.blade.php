@@ -23,17 +23,15 @@
             <table class="table align-middle table-row-dashed fs-6 gy-5" id="kt_table_users">
                 <thead>
                     <tr class="text-start text-muted fw-bold fs-7 text-uppercase gs-0">
-                        <!--<th class="min-w-50px">ID</th>-->
                         <th class="min-w-125px">Usuario</th>
                         <th class="min-w-125px">Email</th>
-                        <th class="min-w-125px">Rol/Permisos</th>
+                        <th class="min-w-125px">Rol Asignado</th>
                         <th class="text-end min-w-100px">Acciones</th>
                     </tr>
                 </thead>
                 <tbody class="text-gray-600 fw-semibold">
                     @foreach($usuarios as $user)
                     <tr>
-                        <!--<td>{{ $user->id }}</td>-->
                         <td class="d-flex align-items-center">
                             <div class="symbol symbol-circle symbol-50px overflow-hidden me-3">
                                 <div class="symbol-label fs-3 bg-light-danger text-danger">
@@ -47,7 +45,12 @@
                         <td>{{ $user->email }}</td>
                         <td>
                             <div class="d-flex flex-wrap gap-1">
-                                <span class="text-gray-800 text-hover-primary mb-1">{{ $user->permisos->nombre_rol }}</span>
+                                {{-- ADAPTACIÓN RBAC: Iteramos sobre los roles --}}
+                                @forelse($user->roles as $role)
+                                <span class="badge badge-light-primary fw-bold fs-7">{{ $role->name }}</span>
+                                @empty
+                                <span class="badge badge-light fw-bold fs-7 text-muted">Sin Rol</span>
+                                @endforelse
                             </div>
                         </td>
                         <td class="text-end">
@@ -100,38 +103,32 @@
             }
         }).then((result) => {
             if (result.isConfirmed) {
-                // Si el texto es correcto, enviamos el formulario
                 document.getElementById('delete-form-' + id).submit();
             }
         });
     }
-</script>
-<script>
-    //Buscar susuarios
+
     $(document).ready(function() {
-        // Función para calcular cuántas filas mostrar según el tamaño
         function obtenerPageLength() {
             var ancho = window.innerWidth;
-            if (ancho < 768) return 5; // Móvil: 5 filas
-            if (ancho < 1200) return 8; // Tablet: 8 filas
-            return 12; // Escritorio: 12 filas
+            if (ancho < 768) return 5;
+            if (ancho < 1200) return 8;
+            return 12;
         }
 
         var table = $('#kt_table_users').DataTable({
             "info": false,
             "order": [],
-            "pageLength": obtenerPageLength(), // Aplicamos el cálculo inicial
+            "pageLength": obtenerPageLength(),
             "lengthChange": false,
-            "pagingType": "simple_numbers", // Esto hace que en móvil se vea más limpio
-            "responsive": true // Activa el modo responsivo de Metronic
+            "pagingType": "simple_numbers",
+            "responsive": true
         });
 
-        // Filtro de búsqueda
         $('[data-kt-user-table-filter="search"]').on('keyup', function() {
             table.search(this.value).draw();
         });
 
-        // Opcional: Re-ajustar si el usuario gira la tablet o cambia el tamaño de ventana
         $(window).on('resize', function() {
             var nuevoLargo = obtenerPageLength();
             if (table.page.len() !== nuevoLargo) {

@@ -15,7 +15,7 @@
 
             <div class="mb-10 fv-row">
                 <label class="required form-label fw-bold">Nombre del Rol</label>
-                <input type="text" name="nombre_rol" class="form-control form-control-solid" placeholder="Ej: Técnico de Almacén, Becario, Administrador..." required />
+                <input type="text" name="name" class="form-control form-control-solid" placeholder="Ej: Técnico de Almacén" required />
             </div>
 
             <div class="d-flex flex-column">
@@ -32,42 +32,59 @@
                             <tr class="text-gray-500 fw-bold fs-7 text-uppercase gs-0">
                                 <th class="min-w-200px">Módulo</th>
                                 <th class="min-w-100px text-center bg-light-success rounded-start">Lectura (Ver)</th>
-                                <th class="min-w-100px text-center bg-light-warning rounded-end">Escritura (Crear/Editar/Borrar)</th>
+                                <th class="min-w-100px text-center bg-light-warning rounded-end">Escritura (Editar)</th>
                             </tr>
                         </thead>
                         <tbody class="fw-semibold text-gray-600">
                             @php
-                            // Array de configuración para generar la tabla dinámicamente
-                            $modulos = [
+                            // 1. Definimos nombres bonitos para los grupos
+                            $nombresModulos = [
                             'usuarios' => 'Gestión de Usuarios',
                             'activos' => 'Inventario de Activos',
                             'almacenes' => 'Almacenes',
-                            'incidencias' => 'Incidencias y Reportes',
-                            'prestamos' => 'Préstamos y Devoluciones',
+                            'incidencias' => 'Incidencias',
+                            'prestamos' => 'Préstamos',
+                            'reservas' => 'Reservas',
+                            'logs' => 'Logs del Sistema',
                             ];
+
+                            // 2. Agrupamos los permisos que vienen de la BD por su prefijo (ej: 'usuarios')
+                            $grupos = $permisos->groupBy(function($item) {
+                            return explode('.', $item->name)[0];
+                            });
                             @endphp
 
-                            @foreach($modulos as $key => $label)
+                            @foreach($grupos as $key => $permisosGrupo)
                             <tr>
-                                <td class="text-gray-800 fw-bold">{{ $label }}</td>
-
-                                <td class="text-center bg-light bg-opacity-10">
-                                    <label class="form-check form-check-custom form-check-solid form-check-sm justify-content-center">
-                                        <input class="form-check-input chk-read" type="checkbox"
-                                            name="permiso_{{ $key }}_r"
-                                            id="chk_{{ $key }}_r"
-                                            value="1" />
-                                    </label>
+                                <td class="text-gray-800 fw-bold">
+                                    {{ $nombresModulos[$key] ?? ucfirst($key) }}
                                 </td>
 
+                                {{-- Buscamos el permiso .leer dentro del grupo --}}
+                                @php $pLeer = $permisosGrupo->firstWhere('name', $key . '.leer'); @endphp
                                 <td class="text-center bg-light bg-opacity-10">
+                                    @if($pLeer)
+                                    <label class="form-check form-check-custom form-check-solid form-check-sm justify-content-center">
+                                        <input class="form-check-input chk-read" type="checkbox"
+                                            name="permissions[]"
+                                            id="chk_{{ $key }}_r"
+                                            value="{{ $pLeer->id }}" />
+                                    </label>
+                                    @endif
+                                </td>
+
+                                {{-- Buscamos el permiso .escribir dentro del grupo --}}
+                                @php $pEscribir = $permisosGrupo->firstWhere('name', $key . '.escribir'); @endphp
+                                <td class="text-center bg-light bg-opacity-10">
+                                    @if($pEscribir)
                                     <label class="form-check form-check-custom form-check-solid form-check-sm justify-content-center">
                                         <input class="form-check-input chk-write" type="checkbox"
-                                            name="permiso_{{ $key }}_wr"
+                                            name="permissions[]"
                                             id="chk_{{ $key }}_wr"
-                                            value="1"
+                                            value="{{ $pEscribir->id }}"
                                             onchange="sincronizarLectura('{{ $key }}')" />
                                     </label>
+                                    @endif
                                 </td>
                             </tr>
                             @endforeach
@@ -86,19 +103,17 @@
 
 @section('scripts')
 <script>
-    // Si marcas escritura, automáticamente marcas lectura
     function sincronizarLectura(key) {
         const chkWrite = document.getElementById(`chk_${key}_wr`);
         const chkRead = document.getElementById(`chk_${key}_r`);
-
-        if (chkWrite.checked) {
+        // Si marco escribir y existe el de leer, marco leer también
+        if (chkWrite && chkWrite.checked && chkRead) {
             chkRead.checked = true;
         }
     }
 
     function marcarTodos(estado) {
-        const checkboxes = document.querySelectorAll('.form-check-input');
-        checkboxes.forEach(chk => chk.checked = estado);
+        document.querySelectorAll('.form-check-input').forEach(chk => chk.checked = estado);
     }
 </script>
 @endsection

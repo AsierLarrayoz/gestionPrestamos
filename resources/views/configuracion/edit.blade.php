@@ -3,68 +3,95 @@
 @section('content')
 <div class="card shadow-sm">
     <div class="card-header border-0 pt-6">
-        <div class="card-title">
-            <h3 class="fw-bolder">Editar Usuario: {{ $usuario->name }}</h3>
-        </div>
-        <div class="card-toolbar">
-            <a href="{{ route('configuracion.index') }}" class="btn btn-light-primary btn-sm">
-                <i class="ki-outline ki-arrow-left fs-2"></i> Volver al listado
-            </a>
-        </div>
+        <h3 class="card-title fw-bolder">Editar Usuario: {{ $usuario->name }}</h3>
     </div>
 
     <div class="card-body">
-        <form action="{{ route('configuracion.update', $usuario->id) }}" method="POST" id="kt_user_edit_form">
+        <form action="{{ route('configuracion.update', $usuario->id) }}" method="POST">
             @csrf
             @method('PUT')
 
             <div class="row g-9 mb-8">
                 <div class="col-md-6 fv-row">
-                    <label class="required fs-6 fw-semibold mb-2">Nombre Completo</label>
-                    <input type="text" name="name" class="form-control form-control-solid @error('name') is-invalid @enderror"
-                        value="{{ old('name', $usuario->name) }}" required />
-                    @error('name')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
+                    <label class="required fs-6 fw-semibold mb-2">Nombre</label>
+                    <input type="text" name="name" value="{{ $usuario->name }}" class="form-control form-control-solid" required />
                 </div>
-
                 <div class="col-md-6 fv-row">
-                    <label class="required fs-6 fw-semibold mb-2">Correo Electrónico</label>
-                    <input type="email" name="email" class="form-control form-control-solid @error('email') is-invalid @enderror"
-                        value="{{ old('email', $usuario->email) }}" required />
-                    @error('email')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
+                    <label class="required fs-6 fw-semibold mb-2">Email</label>
+                    <input type="email" name="email" value="{{ $usuario->email }}" class="form-control form-control-solid" required />
                 </div>
             </div>
 
             <div class="fv-row mb-8">
-                <label class="fs-6 fw-bold mb-2 required">Rol / Perfil de Permisos</label>
-
-                <select name="permisos_id" id="permisos_id" class="form-select form-select-solid" data-control="select2" data-placeholder="Selecciona un rol">
-                    <option></option>
-                    @foreach($permisos as $permiso)
-                    <option value="{{ $permiso->id }}" selected="$usuario->permisos->nombre_rol">
-                        {{ $permiso->nombre_rol }}
+                <label class="fs-6 fw-bold mb-2">Rol Principal</label>
+                <select name="role_id" class="form-select form-select-solid" data-control="select2">
+                    <option value="">Sin Rol</option>
+                    @foreach($roles as $rol)
+                    <option value="{{ $rol->id }}"
+                        {{ $usuario->roles->contains($rol->id) ? 'selected' : '' }}>
+                        {{ $rol->name }}
                     </option>
                     @endforeach
                 </select>
-
-                <div id="info-permisos" class="mt-5 p-5 bg-light rounded d-none">
-                    <div class="fw-bold mb-2 text-gray-800">Permisos incluidos en este rol:</div>
-                    <div id="lista-permisos" class="d-flex flex-wrap gap-2">
-                    </div>
-                </div>
-
-                <div class="form-text text-muted">Al elegir un rol, el usuario heredará automáticamente todos sus permisos.</div>
             </div>
 
-            <div class="notice d-flex bg-light-warning rounded border-warning border border-dashed p-6 mb-8">
-                <i class="ki-outline ki-information-5 fs-2tx text-warning me-4"></i>
-                <div class="d-flex flex-stack flex-grow-1">
-                    <div class="fw-semibold">
-                        <h4 class="text-gray-900 fw-bold">Actualización de seguridad</h4>
-                        <div class="fs-6 text-gray-700">Deja los siguientes campos en blanco si NO deseas cambiar la contraseña del usuario.</div>
+            <div class="mb-8">
+                <div class="d-flex align-items-center collapsible py-3 toggle mb-0" data-bs-toggle="collapse" data-bs-target="#kt_permisos_manuales">
+                    <div class="btn btn-sm btn-icon btn-active-color-primary ms-n3 me-2">
+                        <i class="ki-outline ki-plus-square fs-2 toggle-off"></i>
+                        <i class="ki-outline ki-minus-square fs-2 toggle-on"></i>
+                    </div>
+                    <h4 class="text-gray-700 fw-bold cursor-pointer mb-0">Permisos Directos / Adicionales</h4>
+                </div>
+
+                {{-- Añade 'show' a la clase si el usuario ya tiene permisos directos --}}
+                <div id="kt_permisos_manuales" class="collapse {{ $usuario->permissions->count() > 0 ? 'show' : '' }} mt-5">
+
+                    <div class="table-responsive">
+                        <table class="table align-middle table-row-dashed fs-6 gy-5">
+                            <thead>
+                                <tr class="text-gray-500 fw-bold fs-7 text-uppercase gs-0">
+                                    <th class="min-w-200px">Módulo</th>
+                                    <th class="text-center bg-light-success">Lectura</th>
+                                    <th class="text-center bg-light-warning">Escritura</th>
+                                </tr>
+                            </thead>
+                            <tbody class="fw-semibold text-gray-600">
+                                @php
+                                $modulos = [
+                                'usuarios' => 'Usuarios', 'activos' => 'Activos',
+                                'almacenes' => 'Almacenes', 'incidencias' => 'Incidencias',
+                                'prestamos' => 'Préstamos', 'reservas' => 'Reservas', 'logs' => 'Logs'
+                                ];
+                                $grupos = $permisos->groupBy(function($i) { return explode('.', $i->name)[0]; });
+
+                                // IDs de permisos directos del usuario
+                                $misPermisos = $usuario->permissions->pluck('id')->toArray();
+                                @endphp
+
+                                @foreach($grupos as $key => $grupo)
+                                <tr>
+                                    <td>{{ $modulos[$key] ?? ucfirst($key) }}</td>
+
+                                    {{-- LECTURA --}}
+                                    <td class="text-center bg-light bg-opacity-10">
+                                        @if($p = $grupo->firstWhere('name', $key.'.leer'))
+                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="{{ $p->id }}"
+                                            @checked(in_array($p->id, $misPermisos))>
+                                        @endif
+                                    </td>
+
+                                    {{-- ESCRITURA --}}
+                                    <td class="text-center bg-light bg-opacity-10">
+                                        @if($p = $grupo->firstWhere('name', $key.'.escribir'))
+                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="{{ $p->id }}"
+                                            @checked(in_array($p->id, $misPermisos))>
+                                        @endif
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -72,25 +99,16 @@
             <div class="row g-9 mb-8">
                 <div class="col-md-6 fv-row">
                     <label class="fs-6 fw-semibold mb-2">Nueva Contraseña (Opcional)</label>
-                    <input type="password" name="password" class="form-control form-control-solid @error('password') is-invalid @enderror"
-                        placeholder="Ingresa nueva contraseña" />
-                    @error('password')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
+                    <input type="password" name="password" class="form-control form-control-solid" />
                 </div>
-
                 <div class="col-md-6 fv-row">
-                    <label class="fs-6 fw-semibold mb-2">Confirmar Nueva Contraseña</label>
-                    <input type="password" name="password_confirmation" class="form-control form-control-solid"
-                        placeholder="Repite la nueva contraseña" />
+                    <label class="fs-6 fw-semibold mb-2">Confirmar</label>
+                    <input type="password" name="password_confirmation" class="form-control form-control-solid" />
                 </div>
             </div>
 
             <div class="text-center pt-10">
-                <button type="reset" class="btn btn-light me-3">Revertir cambios</button>
-                <button type="submit" class="btn btn-primary">
-                    <span class="indicator-label">Actualizar Usuario</span>
-                </button>
+                <button type="submit" class="btn btn-primary">Actualizar Usuario</button>
             </div>
         </form>
     </div>

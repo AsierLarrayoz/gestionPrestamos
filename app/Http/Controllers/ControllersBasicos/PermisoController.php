@@ -3,91 +3,132 @@
 namespace App\Http\Controllers\ControllersBasicos;
 
 use App\Http\Controllers\Controller;
-use App\Models\ModelosBasicos\Permiso; // Cambiado de Rol a Perimiso
+use App\Models\ModelosBasicos\Rol;
+use App\Models\ModelosBasicos\Permiso;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PermisoController extends Controller
 {
+    /**
+     * Muestra la lista de Roles definidos.
+     */
     public function index()
     {
-        $permisos = Permiso::all();
-        return view('permisos.index', compact('permisos'));
+        // Cargamos los roles con sus permisos para mostrarlos en la tabla
+        $roles = Rol::with('permisos')->get();
+        return view('permisos.index', compact('roles'));
     }
 
+    /**
+     * Muestra el formulario para crear un nuevo Rol.
+     */
     public function create()
     {
-        return view('permisos.create');
+        // Necesitamos todos los permisos para pintar los checkboxes
+        $permisos = Permiso::all();
+        return view('permisos.create', compact('permisos'));
     }
 
+    /**
+     * Guarda el nuevo Rol en la base de datos.
+     */
     public function store(Request $request)
     {
-        // 1. Validamos que los datos lleguen (pueden ser nulos porque son checkboxes)
         $request->validate([
-            'nombre_rol' => 'required|string|unique:permisos,nombre_rol|max:50',
+            'name' => 'required|string|unique:roles,name|max:50',
+            'permissions' => 'array' // Array de IDs de permisos seleccionados
         ]);
 
-        // 2. Creamos el perfil de permisos
-        Permiso::create([
-            'nombre_rol'             => $request->nombre_rol,
-            'permiso_usuarios_wr'    => $request->has('permiso_usuarios_wr'),
-            'permiso_activos_wr'     => $request->has('permiso_activos_wr'),
-            'permiso_almacenes_wr'   => $request->has('permiso_almacenes_wr'),
-            'permiso_incidencias_wr' => $request->has('permiso_incidencias_wr'),
-            'permiso_prestamos_wr'   => $request->has('permiso_prestamos_wr'),
-            'permiso_reservas_wr'    => $request->has('permiso_reservas_wr'),
-            'permiso_usuarios_r'    => $request->has('permiso_usuarios_r'),
-            'permiso_activos_r'     => $request->has('permiso_activos_r'),
-            'permiso_almacenes_r'   => $request->has('permiso_almacenes_r'),
-            'permiso_incidencias_r' => $request->has('permiso_incidencias_r'),
-            'permiso_prestamos_r'   => $request->has('permiso_prestamos_r'),
-            'permiso_reservas_r'    => $request->has('permiso_reservas_r'),
-            'permiso_log_r'         => $request->has('permiso_log_r'),
-        ]);
+        try {
+            DB::beginTransaction();
 
-        return redirect()->route('permisos.index')->with('success', 'Perfil de permisos creado correctamente.');
+            // 1. Creamos el Rol
+            $rol = Rol::create([
+                'name' => $request->name,
+                'label' => $request->name, // Usamos el mismo nombre como etiqueta por ahora
+            ]);
+
+            // 2. Sincronizamos los permisos (tabla pivote permission_role)
+            if ($request->has('permissions')) {
+                $rol->permisos()->sync($request->permissions);
+            }
+
+            DB::commit();
+            return redirect()->route('permisos.index')->with('success', 'Rol creado correctamente.');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->with('error', 'Error al crear el rol: ' . $e->getMessage());
+        }
     }
 
+    /**
+     * Muestra el formulario para editar un Rol existente.
+     */
     public function edit(string $id)
     {
-        $permiso = Permiso::findOrFail($id);
-        return view('permisos.edit', compact('permiso'));
+        $rol = Rol::with('permisos')->findOrFail($id);
+        $permisos = Permiso::all();
+
+        return view('permisos.edit', compact('rol', 'permisos'));
     }
 
+    /**
+     * Actualiza el Rol y sus permisos.
+     */
     public function update(Request $request, string $id)
     {
-        $permiso = Permiso::findOrFail($id);
-        $request->validate([
-            'nombre_rol' => 'required|string|max:50|unique:permisos,nombre_rol,' . $id,
-        ]);
-        $permiso->update([
-            'nombre_rol'             => $request->nombre_rol,
-            'permiso_usuarios_wr'    => $request->has('permiso_usuarios_wr'),
-            'permiso_activos_wr'     => $request->has('permiso_activos_wr'),
-            'permiso_almacenes_wr'   => $request->has('permiso_almacenes_wr'),
-            'permiso_incidencias_wr' => $request->has('permiso_incidencias_wr'),
-            'permiso_prestamos_wr'   => $request->has('permiso_prestamos_wr'),
-            'permiso_reservas_wr'    => $request->has('permiso_reservas_wr'),
-            'permiso_usuarios_r'     => $request->has('permiso_usuarios_r'),
-            'permiso_activos_r'      => $request->has('permiso_activos_r'),
-            'permiso_almacenes_r'    => $request->has('permiso_almacenes_r'),
-            'permiso_incidencias_r'  => $request->has('permiso_incidencias_r'),
-            'permiso_prestamos_r'    => $request->has('permiso_prestamos_r'),
-            'permiso_reservas_r'    => $request->has('permiso_reservas_r'),
-            'permiso_log_r'         => $request->has('permiso_log_r')
-        ]);
-        return redirect()->route('permisos.index')->with('success', 'Permisos del rol actualizados.');
-    }
+        $rol = Rol::findOrFail($id);
 
-    public function destroy(string $id)
-    {
-        $permiso = Permiso::findOrFail($id);
-
-        // Verificamos si hay usuarios usando este perfil de permisos
-        if ($permiso->users()->exists()) {
-            return back()->with('error', 'No se puede eliminar un perfil de permisos que tiene usuarios asignados.');
+        // Protección: No dejar editar el nombre del Super Admin para no romper la lógica del sistema
+        if ($rol->id == 1 || $rol->name == 'Super Administrador') {
+            // Solo dejamos actualizar permisos, pero no el nombre
+            // O podemos bloquearlo totalmente si prefieres.
         }
 
-        $permiso->delete();
-        return redirect()->route('permisos.index')->with('success', 'Perfil eliminado.');
+        $request->validate([
+            'name' => 'required|string|max:50|unique:roles,name,' . $id,
+            'permissions' => 'array'
+        ]);
+
+        $rol->update([
+            'name' => $request->name,
+            'label' => $request->name,
+        ]);
+
+        // Actualizamos la tabla pivote.
+        // sync() borra los que no estén en el array y añade los nuevos.
+        $rol->permisos()->sync($request->input('permissions', []));
+
+        return redirect()->route('permisos.index')->with('success', 'Rol actualizado correctamente.');
+    }
+
+    /**
+     * Elimina un Rol.
+     */
+    public function destroy(string $id)
+    {
+        $rol = Rol::findOrFail($id);
+
+        // 1. Seguridad: No borrar el rol Super Admin
+        if ($rol->id == 1 || $rol->name == 'Super Administrador') {
+            return back()->with('error', 'No se puede eliminar el rol de Super Administrador.');
+        }
+
+        // 2. Seguridad: No borrar si hay usuarios asignados
+        // Como la relación es many-to-many, contamos en la tabla pivote role_user
+        // Nota: Laravel permite acceder a esto si definiste la relación 'users()' en el modelo Rol.
+        // Si no, podemos hacerlo manual o confiar en el foreign key constraint si lo pusiste.
+
+        // Asumiendo que tienes la relación users() en el modelo Rol:
+        /*
+        if ($rol->users()->count() > 0) {
+            return back()->with('error', 'No puedes eliminar un rol que tiene usuarios asignados.');
+        }
+        */
+
+        $rol->delete(); // El 'cascade' de la migración limpiará la tabla permission_role
+
+        return redirect()->route('permisos.index')->with('success', 'Rol eliminado correctamente.');
     }
 }

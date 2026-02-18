@@ -3,20 +3,24 @@
 @section('content')
 <div class="card shadow-sm">
     <div class="card-header">
-        <h3 class="card-title fw-bold">Editar Rol: {{ $permiso->nombre_rol }}</h3>
+        <h3 class="card-title fw-bold">Editar Rol: {{ $rol->name }}</h3>
         <div class="card-toolbar">
             <a href="{{ route('permisos.index') }}" class="btn btn-sm btn-light">Volver</a>
         </div>
     </div>
 
     <div class="card-body">
-        <form action="{{ route('permisos.update', $permiso->id) }}" method="POST">
+        <form action="{{ route('permisos.update', $rol->id) }}" method="POST">
             @csrf
             @method('PUT')
 
             <div class="mb-10 fv-row">
                 <label class="required form-label fw-bold">Nombre del Rol</label>
-                <input type="text" name="nombre_rol" class="form-control form-control-solid" value="{{ $permiso->nombre_rol }}" required />
+                <input type="text" name="name" class="form-control form-control-solid" value="{{ $rol->name }}" required
+                    {{ $rol->id == 1 ? 'readonly' : '' }} />
+                @if($rol->id == 1)
+                <div class="form-text">El nombre del Super Admin no se puede modificar.</div>
+                @endif
             </div>
 
             <div class="table-responsive">
@@ -30,44 +34,58 @@
                     </thead>
                     <tbody class="fw-semibold text-gray-600">
                         @php
-                        $modulos = [
+                        $nombresModulos = [
                         'usuarios' => 'Gestión de Usuarios',
                         'activos' => 'Inventario de Activos',
                         'almacenes' => 'Almacenes',
-                        'incidencias' => 'Incidencias y Reportes',
-                        'prestamos' => 'Préstamos y Devoluciones',
-                        'log' => ' Logs de los requests'
+                        'incidencias' => 'Incidencias',
+                        'prestamos' => 'Préstamos',
+                        'reservas' => 'Reservas',
+                        'logs' => 'Logs del Sistema',
                         ];
+
+                        // Agrupamos permisos disponibles
+                        $grupos = $permisos->groupBy(function($item) {
+                        return explode('.', $item->name)[0];
+                        });
+
+                        // IDs que ya tiene el rol
+                        $permisosActivos = $rol->permisos->pluck('id')->toArray();
                         @endphp
 
-                        @foreach($modulos as $key => $label)
-                        @php
-                        // Nombres dinámicos de las columnas en BD
-                        $colRead = "permiso_{$key}_r";
-                        $colWrite = "permiso_{$key}_wr";
-                        @endphp
+                        @foreach($grupos as $key => $permisosGrupo)
                         <tr>
-                            <td>{{ $label }}</td>
-
-                            <td class="text-center">
-                                <label class="form-check form-check-custom form-check-solid form-check-sm justify-content-center">
-                                    <input class="form-check-input" type="checkbox"
-                                        name="{{ $colRead }}"
-                                        id="chk_{{ $key }}_r"
-                                        value="1"
-                                        @checked($permiso->$colRead) />
-                                </label>
+                            <td class="text-gray-800 fw-bold">
+                                {{ $nombresModulos[$key] ?? ucfirst($key) }}
                             </td>
 
-                            <td class="text-center">
+                            {{-- LECTURA --}}
+                            @php $pLeer = $permisosGrupo->firstWhere('name', $key . '.leer'); @endphp
+                            <td class="text-center bg-light bg-opacity-10">
+                                @if($pLeer)
                                 <label class="form-check form-check-custom form-check-solid form-check-sm justify-content-center">
                                     <input class="form-check-input" type="checkbox"
-                                        name="{{ $colWrite }}"
+                                        name="permissions[]"
+                                        id="chk_{{ $key }}_r"
+                                        value="{{ $pLeer->id }}"
+                                        @checked(in_array($pLeer->id, $permisosActivos)) />
+                                </label>
+                                @endif
+                            </td>
+
+                            {{-- ESCRITURA --}}
+                            @php $pEscribir = $permisosGrupo->firstWhere('name', $key . '.escribir'); @endphp
+                            <td class="text-center bg-light bg-opacity-10">
+                                @if($pEscribir)
+                                <label class="form-check form-check-custom form-check-solid form-check-sm justify-content-center">
+                                    <input class="form-check-input" type="checkbox"
+                                        name="permissions[]"
                                         id="chk_{{ $key }}_wr"
-                                        value="1"
-                                        @checked($permiso->$colWrite)
+                                        value="{{ $pEscribir->id }}"
+                                        @checked(in_array($pEscribir->id, $permisosActivos))
                                     onchange="sincronizarLectura('{{ $key }}')" />
                                 </label>
+                                @endif
                             </td>
                         </tr>
                         @endforeach
@@ -88,7 +106,9 @@
     function sincronizarLectura(key) {
         const chkWrite = document.getElementById(`chk_${key}_wr`);
         const chkRead = document.getElementById(`chk_${key}_r`);
-        if (chkWrite.checked) chkRead.checked = true;
+        if (chkWrite && chkWrite.checked && chkRead) {
+            chkRead.checked = true;
+        }
     }
 </script>
 @endsection

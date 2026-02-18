@@ -24,17 +24,18 @@
                     </tr>
                 </thead>
                 <tbody class="fw-semibold text-gray-600">
-                    @foreach($permisos as $rol)
+                    @foreach($roles as $rol)
                     <tr>
                         <td>
                             <div class="d-flex align-items-center">
                                 <div class="symbol symbol-40px me-3">
                                     <span class="symbol-label bg-light-primary text-primary fw-bold">
-                                        {{ substr($rol->nombre_rol, 0, 1) }}
+                                        {{ substr($rol->name, 0, 1) }}
                                     </span>
                                 </div>
                                 <div class="d-flex flex-column">
-                                    <span class="text-gray-800 fw-bold mb-1">{{ $rol->nombre_rol }}</span>
+                                    <span class="text-gray-800 fw-bold mb-1">{{ $rol->name }}</span>
+                                    <span class="text-muted fs-7">{{ $rol->label }}</span>
                                 </div>
                             </div>
                         </td>
@@ -46,12 +47,18 @@
                                 <i class="ki-outline ki-pencil fs-2"></i>
                             </a>
 
+                            {{-- No dejar borrar al Super Admin (ID 1) --}}
+                            @if($rol->id !== 1)
                             <form action="{{ route('permisos.destroy', $rol->id) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Borrar este rol?');">
                                 @csrf @method('DELETE')
-                                <button type="submit" class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm" {{ ($rol->users_count ?? 0) > 0 ? 'disabled' : '' }} title="No se puede borrar si tiene usuarios">
+                                <button type="submit" class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm"
+                                    {{-- Usamos la relación count() --}}
+                                    {{ $rol->permisos->count() > 0 ? '' : '' }}
+                                    title="Eliminar Rol">
                                     <i class="ki-outline ki-trash fs-2"></i>
                                 </button>
                             </form>
+                            @endif
                         </td>
                     </tr>
                     @endforeach

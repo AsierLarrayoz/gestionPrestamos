@@ -3,124 +3,113 @@
 @section('content')
 <div class="card shadow-sm">
     <div class="card-header border-0 pt-6">
-        <div class="card-title">
-            <h3 class="fw-bolder">Crear Nuevo Usuario</h3>
-        </div>
-        <div class="card-toolbar">
-            <a href="{{ route('configuracion.index') }}" class="btn btn-light-primary btn-sm">
-                <i class="ki-outline ki-arrow-left fs-2"></i> Volver al listado
-            </a>
-        </div>
+        <h3 class="card-title fw-bolder">Crear Nuevo Usuario</h3>
     </div>
 
     <div class="card-body">
-        <form action="{{ route('configuracion.store') }}" method="POST" id="kt_user_create_form">
+        <form action="{{ route('configuracion.store') }}" method="POST">
             @csrf
 
             <div class="row g-9 mb-8">
                 <div class="col-md-6 fv-row">
-                    <label class="required fs-6 fw-semibold mb-2">Nombre Completo</label>
-                    <input type="text" name="name" class="form-control form-control-solid @error('name') is-invalid @enderror"
-                        placeholder="Ej. Juan Pérez" value="{{ old('name') }}" required />
-                    @error('name')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
+                    <label class="required fs-6 fw-semibold mb-2">Nombre</label>
+                    <input type="text" name="name" class="form-control form-control-solid" required />
                 </div>
-
                 <div class="col-md-6 fv-row">
-                    <label class="required fs-6 fw-semibold mb-2">Correo Electrónico</label>
-                    <input type="email" name="email" class="form-control form-control-solid @error('email') is-invalid @enderror"
-                        placeholder="usuario@empresa.com" value="{{ old('email') }}" required />
-                    @error('email')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
+                    <label class="required fs-6 fw-semibold mb-2">Email</label>
+                    <input type="email" name="email" class="form-control form-control-solid" required />
                 </div>
             </div>
-            <div class="fv-row mb-8">
-                <label class="fs-6 fw-bold mb-2 required">Rol / Perfil de Permisos</label>
 
-                <select name="permisos_id" id="permisos_id" class="form-select form-select-solid" data-control="select2" data-placeholder="Selecciona un rol">
-                    <option></option>
-                    @foreach($permisos as $permiso)
-                    <option value="{{ $permiso->id }}">
-                        {{ $permiso->nombre_rol }}
-                    </option>
+            <div class="fv-row mb-8">
+                <label class="fs-6 fw-bold mb-2">Rol Principal (Opcional)</label>
+                <select name="role_id" class="form-select form-select-solid" data-control="select2" data-placeholder="Sin Rol">
+                    <option value="">Sin Rol (Usar solo permisos manuales)</option>
+                    @foreach($roles as $rol)
+                    <option value="{{ $rol->id }}">{{ $rol->name }}</option>
                     @endforeach
                 </select>
-
-                <div id="info-permisos" class="mt-5 p-5 bg-light rounded d-none">
-                    <div class="fw-bold mb-2 text-gray-800">Permisos incluidos en este rol:</div>
-                    <div id="lista-permisos" class="d-flex flex-wrap gap-2">
-                    </div>
-                </div>
-
-                <div class="form-text text-muted">Al elegir un rol, el usuario heredará automáticamente todos sus permisos.</div>
+                <div class="form-text">El rol asigna un paquete de permisos base. Puedes añadir excepciones abajo.</div>
             </div>
 
+            <div class="mb-8">
+                <div class="d-flex align-items-center collapsible py-3 toggle collapsed mb-0" data-bs-toggle="collapse" data-bs-target="#kt_permisos_manuales">
+                    <div class="btn btn-sm btn-icon btn-active-color-primary ms-n3 me-2">
+                        <i class="ki-outline ki-plus-square fs-2 toggle-off"></i>
+                        <i class="ki-outline ki-minus-square fs-2 toggle-on"></i>
+                    </div>
+                    <h4 class="text-gray-700 fw-bold cursor-pointer mb-0">Permisos Directos / Adicionales</h4>
+                </div>
 
+                <div id="kt_permisos_manuales" class="collapse mt-5">
+                    <div class="alert alert-primary d-flex align-items-center p-5 mb-5">
+                        <i class="ki-outline ki-shield-tick fs-2hx text-primary me-4"></i>
+                        <div class="d-flex flex-column">
+                            <h4 class="mb-1 text-primary">Permisos Específicos</h4>
+                            <span>Marca estos permisos SOLO si quieres dar acceso a algo que el Rol no incluye.</span>
+                        </div>
+                    </div>
 
-            <hr class="my-10 text-gray-200">
+                    {{-- TABLA DE PERMISOS (Idéntica a la de Roles) --}}
+                    <div class="table-responsive">
+                        <table class="table align-middle table-row-dashed fs-6 gy-5">
+                            <thead>
+                                <tr class="text-gray-500 fw-bold fs-7 text-uppercase gs-0">
+                                    <th class="min-w-200px">Módulo</th>
+                                    <th class="text-center bg-light-success">Lectura</th>
+                                    <th class="text-center bg-light-warning">Escritura</th>
+                                </tr>
+                            </thead>
+                            <tbody class="fw-semibold text-gray-600">
+                                @php
+                                $modulos = [
+                                'usuarios' => 'Usuarios', 'activos' => 'Activos',
+                                'almacenes' => 'Almacenes', 'incidencias' => 'Incidencias',
+                                'prestamos' => 'Préstamos', 'reservas' => 'Reservas', 'logs' => 'Logs'
+                                ];
+                                $grupos = $permisos->groupBy(function($i) { return explode('.', $i->name)[0]; });
+                                @endphp
+
+                                @foreach($grupos as $key => $grupo)
+                                <tr>
+                                    <td>{{ $modulos[$key] ?? ucfirst($key) }}</td>
+
+                                    {{-- LECTURA --}}
+                                    <td class="text-center bg-light bg-opacity-10">
+                                        @if($p = $grupo->firstWhere('name', $key.'.leer'))
+                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="{{ $p->id }}">
+                                        @endif
+                                    </td>
+
+                                    {{-- ESCRITURA --}}
+                                    <td class="text-center bg-light bg-opacity-10">
+                                        @if($p = $grupo->firstWhere('name', $key.'.escribir'))
+                                        <input class="form-check-input" type="checkbox" name="permissions[]" value="{{ $p->id }}">
+                                        @endif
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
 
             <div class="row g-9 mb-8">
                 <div class="col-md-6 fv-row">
                     <label class="required fs-6 fw-semibold mb-2">Contraseña</label>
-                    <div class="position-relative mb-3">
-                        <input type="password" name="password" class="form-control form-control-solid @error('password') is-invalid @enderror"
-                            placeholder="Mínimo 8 caracteres" required />
-                        @error('password')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
+                    <input type="password" name="password" class="form-control form-control-solid" required />
                 </div>
-
                 <div class="col-md-6 fv-row">
-                    <label class="required fs-6 fw-semibold mb-2">Confirmar Contraseña</label>
-                    <input type="password" name="password_confirmation" class="form-control form-control-solid"
-                        placeholder="Repite la contraseña" required />
+                    <label class="required fs-6 fw-semibold mb-2">Confirmar</label>
+                    <input type="password" name="password_confirmation" class="form-control form-control-solid" required />
                 </div>
             </div>
 
             <div class="text-center pt-10">
-                <button type="reset" class="btn btn-light me-3">Descartar</button>
-                <button type="submit" class="btn btn-primary">
-                    <span class="indicator-label">Guardar Usuario</span>
-                </button>
+                <button type="submit" class="btn btn-primary">Guardar Usuario</button>
             </div>
         </form>
     </div>
 </div>
-<script>
-    document.getElementById('permisos_id').addEventListener('change', function() {
-        const selected = this.options[this.selectedIndex];
-        const infoDiv = document.getElementById('info-permisos');
-        const lista = document.getElementById('lista-permisos');
-
-        if (!selected.value) {
-            infoDiv.classList.add('d-none');
-            return;
-        }
-
-        infoDiv.classList.remove('d-none');
-        lista.innerHTML = ''; // Limpiar lista
-
-        // Diccionario de nombres legibles
-        const nombres = {
-            'usuarios': 'Usuarios',
-            'activos': 'Activos',
-            'prestamos': 'Préstamos'
-        };
-
-        ['usuarios', 'activos', 'prestamos'].forEach(mod => {
-            // Lectura
-            if (selected.dataset[mod + 'R'] == 1) {
-                lista.innerHTML += `<span class="badge badge-light-primary">Ver ${nombres[mod]}</span>`;
-            }
-            // Escritura
-            if (selected.dataset[mod + 'Wr'] == 1) {
-                lista.innerHTML += `<span class="badge badge-light-success">Editar ${nombres[mod]}</span>`;
-            }
-        });
-    });
-</script>
-@include('activos.modals')
 @endsection

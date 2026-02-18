@@ -2,37 +2,37 @@
 
 namespace App\Http\Middleware;
 
-use Illuminate\Support\Facades\Auth;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 class AdminMiddleware
 {
     /**
-     * Maneja la petición entrante.
-     * * @param $modulo - El nombre del permiso que queremos revisar
+     * @param $permisoRequerido - El string del permiso (ej: 'usuarios.escribir')
      */
-    // Añadimos "= null" para que no sea obligatorio y no de error
-    public function handle(Request $request, Closure $next, string $modulo = null): Response
+    public function handle(Request $request, Closure $next, string $permisoRequerido = null): Response
     {
         if (!Auth::check()) {
-            return redirect('/login');
+            return redirect()->route('login');
         }
 
-        $user = Auth::user();
-
-        if (!$modulo) {
-            return redirect('/dashboard')->with('error', 'Módulo de seguridad no especificado.');
+        if (!$permisoRequerido) {
+            return $next($request);
         }
 
-        $permisos = $user->permisos;
-        $campoPermiso = "permiso_" . $modulo;
-        if (!$permisos || !isset($permisos->$campoPermiso) || !$permisos->$campoPermiso) {
+        $permisoRequerido = strtolower($permisoRequerido); //porsiacaso
 
-            $nombreLimpio = str_replace(['_r', '_wr'], '', $modulo);
+        //esto da errror pero no es un error ya que $user = Auth::user(); devuelve el modelo de user
+        if (!Auth::user()->hasPermission($permisoRequerido)) {
 
-            return redirect('/dashboard')->with('error', "No tienes permiso de acceso/escritura en: " . ucfirst($nombreLimpio));
+            if ($request->expectsJson()) {
+                return response()->json(['error' => 'No tienes permiso para realizar esta acción.'], 403);
+            }
+
+            return redirect()->route('dashboard')
+                ->with('error', 'Acceso denegado. No tienes el permiso: ' . $permisoRequerido);
         }
 
         return $next($request);

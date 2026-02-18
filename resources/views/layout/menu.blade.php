@@ -169,6 +169,12 @@
                             </a>
                         </div>
                         @endif
+                        <div class="menu-item">
+                            <a class="menu-link" href="{{ route('lectores.index') }}">
+                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                <span class="menu-title">Gestionar lectores</span>
+                            </a>
+                        </div>
 
                     </div>
                 </div>

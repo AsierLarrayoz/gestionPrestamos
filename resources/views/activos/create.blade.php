@@ -14,7 +14,7 @@
     </div>
 
     <div class="card-body">
-        <form action="{{ route('activos.store') }}" method="POST" id="form_crear_activo">
+        <form action="{{ route('activos.store') }}" method="POST" id="form_editar_activo">
             @csrf
 
             <div class="row g-9 mb-8">
@@ -30,7 +30,7 @@
 
             <div class="row g-9 mb-8">
                 <div class="col-md-6 fv-row">
-                    <label class="required fs-6 fw-semibold mb-2">Marca</label>
+                    <label class="fs-6 fw-semibold mb-2">Marca</label>
                     <div class="input-group input-group-solid flex-nowrap">
                         <div class="overflow-hidden flex-grow-1">
                             <select id="marca_id" name="marca_id" class="form-select form-select-solid rounded-start" data-control="select2" data-placeholder="Seleccionar Marca">
@@ -47,7 +47,7 @@
                 </div>
 
                 <div class="col-md-6 fv-row">
-                    <label class="required fs-6 fw-semibold mb-2">Modelo</label>
+                    <label class="fs-6 fw-semibold mb-2">Modelo</label>
                     <div class="input-group input-group-solid flex-nowrap">
                         <div class="overflow-hidden flex-grow-1">
                             <select id="modelo_id" name="modelo_id" class="form-select form-select-solid rounded-start" data-control="select2" data-placeholder="Seleccionar Modelo" disabled>
@@ -80,7 +80,7 @@
                 </div>
 
                 <div class="col-md-6 fv-row">
-                    <label class="required fs-6 fw-semibold mb-2">Estado de Salud</label>
+                    <label class="fs-6 fw-semibold mb-2">Estado de Salud</label>
                     <div class="input-group input-group-solid flex-nowrap">
                         <div class="overflow-hidden flex-grow-1">
                             <select id="salud_id" name="salud_id" class="form-select form-select-solid rounded-start" data-control="select2" data-placeholder="Ej: Excelente, Dañado...">

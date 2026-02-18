@@ -13,7 +13,10 @@ return new class extends Migration
     {
         Schema::create('lectores', function (Blueprint $table) {
             $table->id();
-            $table->uuid('uuid_code');
+            $table->string('nombre')->unique();
+            $table->string('identificador_unico')->unique();
+            $table->foreignId('almacen_id')->constrained('almacenes')->onDelete('cascade');
+            $table->string('tipo')->nullable();
             $table->timestamps();
         });
     }

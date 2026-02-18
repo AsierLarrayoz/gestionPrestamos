@@ -6,10 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class Lector extends Model
 {
+    protected $table = 'lectores';
     protected $fillable = [
-        'estado'
+        'nombre',
+        'identificador_unico',
+        'almacen_id',
+        'tipo'
     ];
-    public function incidencias()
+    public function almacen()
     {
         return $this->belongsTo(Almacen::class);
     }

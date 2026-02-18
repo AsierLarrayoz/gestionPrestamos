@@ -19,16 +19,20 @@ use App\Http\Controllers\ControllersBasicos\TipoController;
 use App\Http\Controllers\ControllersBasicos\NivelController;
 use App\Http\Controllers\ControllersBasicos\SaludController;
 use App\Http\Controllers\ControllersBasicos\EstadoController;
+use App\Http\Controllers\ControllersBasicos\LectorController;
 use App\Http\Controllers\ControllersBasicos\PermisoController;
 
 // --- RUTAS PÚBLICAS ---
 Route::get('/', function () {
     return Auth::check() ? redirect()->route('dashboard') : redirect()->route('login');
 });
+Route::get('/lectores', [LectorController::class, 'index'])->name('lectores.index');
+Route::get('/lectores/create', [LectorController::class, 'create'])->name('lectores.create');
+Route::post('/lectores', [LectorController::class, 'store'])->name('lectores.store');
+Route::get('/lectores/{id}/edit', [LectorController::class, 'edit'])->name('lectores.edit');
+Route::put('/lectores/{id}', [LectorController::class, 'update'])->name('lectores.update');
+Route::delete('/lectores/{lector}', [LectorController::class, 'destroy'])->name('lectores.destroy');
 
-Route::get('/error', function () {
-    throw new \Exception('Test error 500');
-});
 
 // --- SOLO USUARIOS LOGUEADOS ---
 Route::middleware(['auth'])->group(function () {

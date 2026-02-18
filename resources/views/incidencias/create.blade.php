@@ -26,7 +26,7 @@
                 <div class="col-md-6 fv-row">
                     <label class="form-label fw-bold">Asociar a Préstamo (Opcional)</label>
                     <div class="d-flex gap-2">
-                        <select name="prestamo_id" id="select_prestamo" class="form-select form-select-solid" data-control="select2" data-placeholder="Seleccionar préstamo activo...">
+                        <select name="prestamo_id" id="select_prestamo" class="form-select form-select-solid" data-control="select2" data-placeholder="Seleccionar préstamo...">
                             <option value="">-- Sin asignar --</option>
                             @foreach($prestamos as $prestamo)
                             <option value="{{ $prestamo->id }}" data-activo-id="{{ $prestamo->activo_id }}">
@@ -57,9 +57,9 @@
             <div class="row mb-6">
 
                 <div class="col-md-6 fv-row">
-                    <label class="required form-label fw-bold">Nivel / Gravedad</label>
+                    <label class="form-label fw-bold">Nivel / Gravedad</label>
                     <div class="input-group">
-                        <select name="nivel_id" id="select_nivel" class="form-select form-select-solid" required>
+                        <select name="nivel_id" id="select_nivel" class="form-select form-select-solid">
                             <option value="">Selecciona...</option>
                             @foreach($niveles as $nivel)
                             <option value="{{ $nivel->id }}">{{ $nivel->nivel }}</option>

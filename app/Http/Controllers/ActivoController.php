@@ -26,7 +26,6 @@ class ActivoController extends Controller
         $salud = Salud::all();
         $tipos = Tipo::all();
         $almacenes = Almacen::all();
-        //Tendre que poner lo de paginate(10)
         return view('activos.create', compact('marcas', 'salud', 'tipos', 'almacenes'));
     }
 
@@ -46,7 +45,7 @@ class ActivoController extends Controller
             'marca_id' => 'nullable|exists:marcas,id',
             'modelo_id' => 'nullable|exists:modelos,id',
             'tipo_id' => 'required|exists:tipos,id',
-            'salud_id' => 'required|exists:salud,id',
+            'salud_id' => 'nullable|exists:salud,id',
         ]);
         if (!empty($request->serial_number)) {
             $is_serialized = true;
@@ -57,7 +56,7 @@ class ActivoController extends Controller
         }
 
         $datosActivo = $request->except(['almacen_id', 'cantidad']);
-        $uuid = Str::uuid()->toString();
+        $uuid = str_replace('-', '', Str::uuid()->toString());
 
         $datosGuardar = array_merge($datosActivo, [
             'uuid'          => $uuid,

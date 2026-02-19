@@ -56,9 +56,10 @@
         </div>
     </div>
 </div>
+
 @if(session('abrir_modal'))
 <div class="modal fade show" style="display: block; background: rgba(0,0,0,0.5);" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title">Gestión de Stock: {{ session('activoOp')->modelo->modelo ?? 'Item' }}</h3>
@@ -78,24 +79,47 @@
                             <span class="fs-2 fw-bold text-success">{{ session('stockActual') }}</span>
                         </div>
 
-                        @if(session('prestamoExistente'))
+                        @if(session('prestamosPendientes') && session('prestamosPendientes')->count() > 0)
                         <div class="border p-3 rounded bg-light-warning">
-                            <small class="text-muted d-block">Prestado (Pendiente)</small>
+                            <small class="text-muted d-block">Total Prestado</small>
                             <span class="fs-2 fw-bold text-warning">{{ session('cantidadYaPrestada') }}</span>
                         </div>
                         @endif
                     </div>
 
-                    <label class="form-label fw-bold">Cantidad a operar:</label>
-                    <input type="number" id="input_cantidad" name="cantidad_confirmada" class="form-control form-control-solid fs-1 text-center mb-5" value="1" min="0" autofocus required />
+                    {{-- DESPLEGABLE DE PRÉSTAMOS (Solo si hay préstamos activos) --}}
+                    @if(session('prestamosPendientes') && session('prestamosPendientes')->count() > 0)
+                    <div class="mb-5 text-start bg-light rounded p-4">
+                        <label class="form-label fw-bold text-dark">Si vas a devolver, selecciona el préstamo:</label>
+                        <select name="prestamo_id" id="select_prestamo" class="form-select form-select-solid border-warning">
+                            @foreach(session('prestamosPendientes') as $prestamo)
+                            <option value="{{ $prestamo->id }}" data-max="{{ $prestamo->cantidad_prestada }}">
+                                {{ $prestamo->cantidad_prestada }} ud. (Prestado el {{ $prestamo->fecha_prestado->format('d/m/y') }}) - {{ $prestamo->descripcion ?? 'Sin descripción' }}
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @endif
 
-                    {{-- NUEVO BLOQUE: Opciones de devolución parcial (Oculto por defecto mediante JS) --}}
-                    @if(session('prestamoExistente'))
+                    {{-- INPUTS DE CANTIDAD Y DESCRIPCIÓN --}}
+                    <div class="row text-start mb-5">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Cantidad a operar:</label>
+                            <input type="number" id="input_cantidad" name="cantidad_confirmada" class="form-control form-control-solid fs-1 text-center" value="1" min="0" required />
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold">Descripción / Destinatario (Solo al Prestar):</label>
+                            <input type="text" name="descripcion" class="form-control form-control-solid fs-4" placeholder="Ej: Proyecto X - Asier" autocomplete="off" />
+                        </div>
+                    </div>
+
+                    {{-- PANEL ROJO DE DEVOLUCIÓN PARCIAL (Oculto por defecto mediante JS) --}}
+                    @if(session('prestamosPendientes') && session('prestamosPendientes')->count() > 0)
                     <div id="opciones_parciales" class="text-start bg-light-danger border border-danger p-4 rounded mb-5" style="display: none;">
                         <label class="form-label fw-bold text-danger mb-3">
                             <i class="ki-outline ki-warning fs-3 text-danger me-1"></i> ¡Devolución Parcial Detectada!
                         </label>
-                        <p class="text-muted fs-7 mb-4">Faltan <span id="span_faltantes" class="fw-bold fs-5 text-dark"></span> unidades. ¿Qué hacemos con ellas?</p>
+                        <p class="text-muted fs-7 mb-4">Faltan <span id="span_faltantes" class="fw-bold fs-5 text-dark"></span> unidades de este préstamo. ¿Qué hacemos con ellas?</p>
 
                         <div class="form-check form-check-custom form-check-solid mb-3">
                             <input class="form-check-input" type="radio" name="tipo_devolucion_parcial" value="dividir" id="radio_dividir" checked />
@@ -112,19 +136,18 @@
                         </div>
                     </div>
                     @endif
-                    {{-- FIN NUEVO BLOQUE --}}
 
                 </div>
 
                 @if(Auth::user()->hasPermission('prestamos.escribir'))
                 <div class="modal-footer justify-content-center">
                     <button type="submit" name="accion_confirmada" value="prestar" class="btn btn-primary">
-                        <i class="ki-outline ki-plus fs-2"></i> Prestar
+                        <i class="ki-outline ki-plus fs-2"></i> Prestar Nuevo
                     </button>
 
-                    @if(session('prestamoExistente'))
+                    @if(session('prestamosPendientes') && session('prestamosPendientes')->count() > 0)
                     <button type="submit" name="accion_confirmada" value="devolver" class="btn btn-danger">
-                        <i class="ki-outline ki-arrow-left fs-2"></i> Devolver
+                        <i class="ki-outline ki-arrow-left fs-2"></i> Devolver Seleccionado
                     </button>
                     @endif
                 </div>
@@ -142,6 +165,8 @@
         const inputCodigo = document.getElementById('input_codigo');
         const inputCantidad = document.getElementById('input_cantidad');
         const divOpciones = document.getElementById('opciones_parciales');
+        const selectPrestamo = document.getElementById('select_prestamo');
+        const spanFaltantes = document.getElementById('span_faltantes');
 
         // --- 1. FOCO INICIAL ---
         if (inputCantidad) {
@@ -163,31 +188,36 @@
             }
         });
 
-        // --- 3. LÓGICA DE DEVOLUCIÓN PARCIAL (Corregida para evitar errores de sintaxis) ---
-        // Lo envolvemos en comillas para que el IDE no falle, y usamos parseInt para asegurarnos de que es un número.
-        // Si no hay sesión, Blade imprimirá "0".
-        const maxPrestado = parseInt("{{ session('cantidadYaPrestada', 0) }}") || 0;
-
+        // --- 3. LÓGICA DE DEVOLUCIÓN PARCIAL MULTI-PRÉSTAMO ---
         if (inputCantidad && divOpciones) {
-            const spanFaltantes = document.getElementById('span_faltantes');
-
-            // Función que comprueba si debe mostrar el panel rojo
             function verificarParcial() {
                 const valorTeclado = parseInt(inputCantidad.value);
 
-                // Si el valor es un número, mayor o igual a 0 y menor que el total prestado (Ej: 35 < 50)
+                // Leemos el máximo de la opción que el operario haya seleccionado
+                let maxPrestado = 0;
+                if (selectPrestamo && selectPrestamo.options.length > 0) {
+                    const opcionSeleccionada = selectPrestamo.options[selectPrestamo.selectedIndex];
+                    maxPrestado = parseInt(opcionSeleccionada.getAttribute('data-max')) || 0;
+                }
+
+                // Si el valor es menor al máximo del préstamo seleccionado (ej: 15 < 20)
                 if (!isNaN(valorTeclado) && valorTeclado >= 0 && valorTeclado < maxPrestado) {
-                    spanFaltantes.textContent = maxPrestado - valorTeclado; // Faltan 15
+                    spanFaltantes.textContent = maxPrestado - valorTeclado;
                     divOpciones.style.display = 'block';
                 } else {
                     divOpciones.style.display = 'none';
                 }
             }
 
-            // Que escuche cada vez que tocas las flechitas o tecleas
+            // Escuchar cambios en la cantidad
             inputCantidad.addEventListener('input', verificarParcial);
 
-            // Que compruebe inmediatamente al cargar la pantalla
+            // Escuchar cambios si el usuario selecciona otro préstamo en el desplegable
+            if (selectPrestamo) {
+                selectPrestamo.addEventListener('change', verificarParcial);
+            }
+
+            // Forzar verificación inicial
             verificarParcial();
         }
     });

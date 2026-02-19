@@ -106,6 +106,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['admin:prestamos.escribir'])->group(function () {
         Route::get('/prestamos/create', [PrestamoController::class, 'create'])->name('prestamos.create');
         Route::post('/prestamos', [PrestamoController::class, 'store'])->name('prestamos.store');
+        Route::get('/prestamos/manual', [PrestamoController::class, 'createManual'])->name('prestamos.manual');
     });
     Route::middleware(['admin:prestamos.leer'])->group(function () {
         Route::get('prestamos/historial', [PrestamoController::class, 'historial'])->name('prestamos.historial');

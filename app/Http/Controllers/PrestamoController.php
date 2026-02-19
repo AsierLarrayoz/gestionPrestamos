@@ -39,6 +39,22 @@ class PrestamoController extends Controller
         $almacenes = Almacen::all();
         return view('prestamos.create', compact('almacenes'));
     }
+    public function createManual()
+    {
+        $almacenes = Almacen::all();
+
+        // AÑADIMOS 'almacenes' AL WITH PARA SABER DÓNDE ESTÁN
+        $activos = Activo::with(['modelo.marca', 'tipo', 'almacenes'])
+            ->where('cantidad', '>', 0)
+            ->get();
+
+        $prestamosActivos = Prestamo::with(['activo.modelo.marca', 'activo.tipo', 'user'])
+            ->whereNull('fecha_devuelto')
+            ->orderBy('fecha_prestado', 'desc')
+            ->get();
+
+        return view('prestamos.create_manual', compact('almacenes', 'activos', 'prestamosActivos'));
+    }
     public function store(Request $request)
     {
         $request->validate([
@@ -57,22 +73,30 @@ class PrestamoController extends Controller
             return back()->with('error', 'Código no reconocido.');
         }
 
-        $prestamoPendiente = Prestamo::where('activo_id', $activo->id)
+        /*$prestamoPendiente = Prestamo::where('activo_id', $activo->id)
             ->whereNull('fecha_devuelto')
-            ->first();
+            ->first();*/
+        $prestamosPendientes = Prestamo::where('activo_id', $activo->id)
+            ->whereNull('fecha_devuelto')
+            ->get();
 
         if ($request->has('accion_confirmada')) {
-            return $this->ejecutarOperacion($request, $activo, $prestamoPendiente);
+            return $this->ejecutarOperacion($request, $activo);
         }
 
         if ($activo->is_serialized) {
-            $accion = $prestamoPendiente ? 'devolver' : 'prestar';
-            //Esta linea 
-            $request->merge(['accion_confirmada' => $accion, 'cantidad_confirmada' => 1]);
-            return $this->ejecutarOperacion($request, $activo, $prestamoPendiente);
+            $accion = $prestamosPendientes->isNotEmpty() ? 'devolver' : 'prestar';
+            $request->merge([
+                'accion_confirmada' => $accion,
+                'cantidad_confirmada' => 1,
+                // Si va a devolver, cogemos el ID del único préstamo que tiene
+                'prestamo_id' => $prestamosPendientes->first()->id ?? null
+            ]);
+            return $this->ejecutarOperacion($request, $activo);
         }
+
         $stockAlmacen = $activo->almacenes()->where('almacen_id', $almacenId)->first()->pivot->cantidad ?? 0;
-        $cantidadYaPrestada = $prestamoPendiente ? $prestamoPendiente->cantidad_prestada : 0;
+        $cantidadYaPrestada = $prestamosPendientes->sum('cantidad_prestada');
 
         return back()->with([
             'abrir_modal' => true,
@@ -80,79 +104,55 @@ class PrestamoController extends Controller
             'stockActual' => $stockAlmacen,
             'codigoActivo' => $codigo,
             'almacenActual' => $almacenId,
-            'prestamoExistente' => $prestamoPendiente,
+            'prestamosPendientes' => $prestamosPendientes, // Mandamos la lista entera a la vista
             'cantidadYaPrestada' => $cantidadYaPrestada
         ]);
     }
 
-    private function ejecutarOperacion(Request $request, $activo, $prestamoPendiente)
+    private function ejecutarOperacion(Request $request, $activo)
     {
         $accion = $request->input('accion_confirmada');
         $cantidad = (int) $request->input('cantidad_confirmada');
         $almacenId = $request->input('almacen_id');
 
-        //DEVOLUCIÓN
+        // --- DEVOLUCIÓN ---
         if ($accion === 'devolver') {
+            // Buscamos el préstamo exacto que el usuario seleccionó en el desplegable
+            $prestamoPendiente = Prestamo::find($request->input('prestamo_id'));
+
             if (!$prestamoPendiente) {
-                return back()->with('error', 'Error: No hay préstamo activo para devolver.');
+                return back()->with('error', 'Error: No has seleccionado un préstamo válido para devolver.');
             }
             if ($cantidad > $prestamoPendiente->cantidad_prestada) {
-                return back()->with('error', "No puedes devolver $cantidad. Solo tienes {$prestamoPendiente->cantidad_prestada} prestados.");
+                return back()->with('error', "No puedes devolver $cantidad. Ese lote solo tiene {$prestamoPendiente->cantidad_prestada} prestados.");
             }
 
             $diferencia = $prestamoPendiente->cantidad_prestada - $cantidad;
+
+            // ... (AQUÍ VA EXACTAMENTE LA MISMA LÓGICA DE SPLIT/DIVISIÓN QUE YA TENÍAS ANTES) ...
+            // (Pega aquí el bloque de "Devolución Total" y "Devolución Parcial" que hicimos en el paso anterior)
+
+            // 1. Lógica de guardado del historial
             if ($diferencia == 0) {
-                // DEVOLUCIÓN TOTAL
-                $prestamoPendiente->update([
-                    'fecha_devuelto' => Carbon::now(),
-                    'cantidad_devuelta' => $cantidad,
-                    'almacen_devuelto_id' => $almacenId
-                ]);
+                $prestamoPendiente->update(['fecha_devuelto' => Carbon::now(), 'cantidad_devuelta' => $cantidad, 'almacen_devuelto_id' => $almacenId]);
             } else {
-                // DEVOLUCIÓN PARCIAL
                 $tipoParcial = $request->input('tipo_devolucion_parcial', 'dividir');
-
                 if ($tipoParcial === 'dividir') {
-                    //Dejar pendiente, se devolveran las que faltan mas tarde
-                    //se crea un prestamo con la cantidad devuelta ahora
-                    $prestamoPendiente->update([
-                        'cantidad_prestada' => $cantidad,
-                        'cantidad_devuelta' => $cantidad,
-                        'fecha_devuelto' => Carbon::now(),
-                        'almacen_devuelto_id' => $almacenId
-                    ]);
-
-                    //creamos uno nuevo oculto por los que faltan con fecha inicial igual al prestamo original.
-                    Prestamo::create([
-                        'fecha_prestado' => $prestamoPendiente->fecha_prestado,
-                        'activo_id' => $activo->id,
-                        'user_id' => $prestamoPendiente->user_id,
-                        'almacen_prestado_id' => $prestamoPendiente->almacen_prestado_id,
-                        'cantidad_prestada' => $diferencia,
-                        'descripcion' => $prestamoPendiente->descripcion . ' (Resto de un préstamo dividido)'
-                    ]);
+                    $prestamoPendiente->update(['cantidad_prestada' => $cantidad, 'cantidad_devuelta' => $cantidad, 'fecha_devuelto' => Carbon::now(), 'almacen_devuelto_id' => $almacenId]);
+                    Prestamo::create(['fecha_prestado' => $prestamoPendiente->fecha_prestado, 'activo_id' => $activo->id, 'user_id' => $prestamoPendiente->user_id, 'almacen_prestado_id' => $prestamoPendiente->almacen_prestado_id, 'cantidad_prestada' => $diferencia, 'descripcion' => $prestamoPendiente->descripcion . ' (Resto pendiente)']);
                 } else {
-                    //Finalizar con pérdidas no se devolveran todas
-                    $prestamoPendiente->update([
-                        'cantidad_devuelta' => $cantidad,
-                        'fecha_devuelto' => Carbon::now(),
-                        'almacen_devuelto_id' => $almacenId
-                    ]);
+                    $prestamoPendiente->update(['cantidad_devuelta' => $cantidad, 'fecha_devuelto' => Carbon::now(), 'almacen_devuelto_id' => $almacenId]);
                 }
             }
-            $activo->almacenes()->syncWithoutDetaching([
-                $almacenId => ['cantidad' => DB::raw("cantidad + $cantidad")]
-            ]);
+
+            // 2. Devolvemos Stock al Almacén
+            $activo->almacenes()->syncWithoutDetaching([$almacenId => ['cantidad' => \Illuminate\Support\Facades\DB::raw("cantidad + $cantidad")]]);
             $activo->increment('cantidad', $cantidad);
 
-            $mensaje = $diferencia > 0
-                ? "Devolución parcial de $cantidad. " . ($request->input('tipo_devolucion_parcial') == 'dividir' ? "Quedan $diferencia pendientes." : "Préstamo cerrado con pérdidas.")
-                : "Devolución total procesada.";
-
-            return back()->with('success', $mensaje);
+            return back()->with('success', "Devolución procesada correctamente.");
         }
 
-        // --- LÓGICA DE PRÉSTAMO ---
+        // --- PRÉSTAMO ---
         if ($accion === 'prestar') {
             $stockActual = $activo->almacenes()->where('almacen_id', $almacenId)->first()->pivot->cantidad ?? 0;
 
@@ -160,23 +160,17 @@ class PrestamoController extends Controller
                 return back()->with('error', "Stock insuficiente. Solo quedan $stockActual unidades.");
             }
 
-            // Crear prestamo o aumentar un prestamo
-            if ($prestamoPendiente) {
-                // Si ya existe uno abierto, le sumamos cantidad
-                $prestamoPendiente->increment('cantidad_prestada', $cantidad);
-            } else {
-                Prestamo::create([
-                    'fecha_prestado' => Carbon::now(),
-                    'activo_id' => $activo->id,
-                    'user_id' => Auth::id(),
-                    'almacen_prestado_id' => $almacenId,
-                    'cantidad_prestada' => $cantidad,
-                    'descripcion' => $request->descripcion
-                ]);
-            }
-            $activo->almacenes()->updateExistingPivot($almacenId, [
-                'cantidad' => DB::raw("cantidad - $cantidad")
+            // YA NO SE SUMAN. SIEMPRE SE CREA UNO NUEVO.
+            Prestamo::create([
+                'fecha_prestado' => Carbon::now(),
+                'activo_id' => $activo->id,
+                'user_id' => Auth::id(),
+                'almacen_prestado_id' => $almacenId,
+                'cantidad_prestada' => $cantidad,
+                'descripcion' => $request->input('descripcion') // Guardamos a quién o para qué es
             ]);
+
+            $activo->almacenes()->updateExistingPivot($almacenId, ['cantidad' => \Illuminate\Support\Facades\DB::raw("cantidad - $cantidad")]);
             $activo->decrement('cantidad', $cantidad);
 
             return back()->with('success', "Préstamo de $cantidad unidades realizado.");

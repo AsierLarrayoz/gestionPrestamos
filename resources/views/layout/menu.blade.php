@@ -61,6 +61,12 @@
                                 <span class="menu-title">Historial</span>
                             </a>
                         </div>
+                        <div class="menu-item">
+                            <a class="menu-link" href="{{ route('prestamos.manual') }}">
+                                <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                <span class="menu-title">Prestamo manual</span>
+                            </a>
+                        </div>
                     </div>
                 </div>
                 @endif

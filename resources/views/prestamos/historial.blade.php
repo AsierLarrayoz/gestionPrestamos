@@ -23,6 +23,8 @@
                 <thead>
                     <tr class="text-start text-gray-400 fw-bold fs-7 text-uppercase gs-0">
                         <th class="min-w-200px">Activo (Tipo + Modelo)</th>
+                        <th class="min-w-200px">Cantidad</th>
+                        <th class="min-w-200px">Descripcion</th>
                         <th class="min-w-150px">Usuario</th>
                         <th class="min-w-200px">Flujo (Origen <i class="ki-outline ki-arrow-right fs-7"></i> Destino)</th>
                         <th class="min-w-150px">Fechas</th>
@@ -34,11 +36,6 @@
                     <tr>
                         <td>
                             <div class="d-flex align-items-center">
-                                <div class="symbol symbol-circle symbol-50px overflow-hidden me-3">
-                                    <div class="symbol-label fs-3 bg-light-success text-success">
-                                        {{ substr($prestamo->activo->tipo->tipo ?? 'A', 0, 1) }}
-                                    </div>
-                                </div>
                                 <div class="d-flex flex-column">
                                     <span class="text-gray-800 fw-bold mb-1">
                                         {{ $prestamo->activo->tipo->tipo ?? '' }} {{ $prestamo->activo->modelo->modelo ?? 'Modelo Desconocido' }}
@@ -48,6 +45,17 @@
                                         - S/N: {{ $prestamo->activo->serial_number ?? '---' }}
                                     </span>
                                 </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex flex-column">
+                                <span class="text-gray-800 fw-bold">Prestado: {{ $prestamo->cantidad_prestada}}</span>
+                                <span class="text-gray-800 fw-bold">Devuelto: {{ $prestamo->cantidad_devuelta}}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex flex-column">
+                                <span class="text-gray-800 fw-bold">{{ $prestamo->descripcion}}</span>
                             </div>
                         </td>
 

@@ -42,10 +42,12 @@ class ActivoController extends Controller
             'rfid_code' => 'nullable|string|max:255|unique:activos,rfid_code',
             'cantidad' => 'required|integer|min:1',
             'almacen_id' => 'required|exists:almacenes,id',
-            'marca_id' => 'nullable|exists:marcas,id',
-            'modelo_id' => 'nullable|exists:modelos,id',
             'tipo_id' => 'required|exists:tipos,id',
             'salud_id' => 'nullable|exists:salud,id',
+            'marca_id' => 'nullable|exists:marcas,id',
+            'modelo_id' => 'required_with:marca_id|nullable|exists:modelos,id',
+        ], [
+            'modelo_id.required_with' => 'Si seleccionas una marca, es obligatorio elegir su modelo.'
         ]);
         if (!empty($request->serial_number)) {
             $is_serialized = true;
@@ -97,12 +99,15 @@ class ActivoController extends Controller
         $activo = Activo::findOrFail($id);
 
         $validatedData = $request->validate([
-            'rfid_code'       => 'nullable|string|max:255|unique:activos,rfid_code,' . $activo->id,
-            'modelo_id'       => 'nullable|exists:modelos,id',
-            'tipo_id'         => 'required|exists:tipos,id',
-            'salud_id'        => 'required|exists:salud,id',
-            'stock_almacenes' => $activo->serial_number ? 'nullable|array' : 'required|array',
+            'rfid_code'        => 'nullable|string|max:255|unique:activos,rfid_code,' . $activo->id,
+            'marca_id'         => 'nullable|exists:marcas,id',
+            'modelo_id'        => 'required_with:marca_id|nullable|exists:modelos,id',
+            'tipo_id'          => 'required|exists:tipos,id',
+            'salud_id'         => 'required|exists:salud,id',
+            'stock_almacenes'  => $activo->serial_number ? 'nullable|array' : 'required|array',
             'nuevo_almacen_id' => $activo->serial_number ? 'required|exists:almacenes,id' : 'nullable',
+        ], [
+            'modelo_id.required_with' => 'Si seleccionas una marca, es obligatorio elegir su modelo.'
         ]);
 
         $datosPivot = [];

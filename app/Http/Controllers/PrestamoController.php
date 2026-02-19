@@ -92,7 +92,6 @@ class PrestamoController extends Controller
         $almacenId = $request->input('almacen_id');
 
         //DEVOLUCIÓN
-        //DEVOLUCIÓN
         if ($accion === 'devolver') {
             if (!$prestamoPendiente) {
                 return back()->with('error', 'Error: No hay préstamo activo para devolver.');

@@ -44,6 +44,9 @@
                             <i class="ki-outline ki-plus fs-2"></i>
                         </button>
                     </div>
+                    @error('marca_id')
+                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                    @enderror
                 </div>
 
                 <div class="col-md-6 fv-row">
@@ -58,6 +61,9 @@
                             <i class="ki-outline ki-plus fs-2"></i>
                         </button>
                     </div>
+                    @error('modelo_id')
+                    <div class="invalid-feedback d-block fw-bold">{{ $message }}</div>
+                    @enderror
                 </div>
             </div>
 

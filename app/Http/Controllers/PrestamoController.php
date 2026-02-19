@@ -147,7 +147,7 @@ class PrestamoController extends Controller
             }
 
             // 2. Devolvemos Stock al Almacén
-            $activo->almacenes()->syncWithoutDetaching([$almacenId => ['cantidad' => \Illuminate\Support\Facades\DB::raw("cantidad + $cantidad")]]);
+            $activo->almacenes()->syncWithoutDetaching([$almacenId => ['cantidad' => DB::raw("cantidad + $cantidad")]]);
             $activo->increment('cantidad', $cantidad);
 
             return back()->with('success', "Devolución procesada correctamente.");
@@ -171,7 +171,7 @@ class PrestamoController extends Controller
                 'descripcion' => $request->input('descripcion') // Guardamos a quién o para qué es
             ]);
 
-            $activo->almacenes()->updateExistingPivot($almacenId, ['cantidad' => \Illuminate\Support\Facades\DB::raw("cantidad - $cantidad")]);
+            $activo->almacenes()->updateExistingPivot($almacenId, ['cantidad' => DB::raw("cantidad - $cantidad")]);
             $activo->decrement('cantidad', $cantidad);
 
             return back()->with('success', "Préstamo de $cantidad unidades realizado.");
@@ -249,7 +249,7 @@ class PrestamoController extends Controller
                     'user_id' => $systemUserId,
                     'almacen_prestado_id' => $lector->almacen_id,
                     'cantidad_prestada' => 1,
-                    'descripcion' => 'Movimiento automatico Lector: ' . $lector->nombre
+                    'descripcion' => 'Prestamo automatico ' . $lector->nombre
                 ]);
 
                 $activo->almacenes()->updateExistingPivot($lector->almacen_id, [

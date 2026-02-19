@@ -22,6 +22,8 @@
                 <thead>
                     <tr class="text-start text-gray-400 fw-bold fs-7 text-uppercase gs-0">
                         <th class="min-w-200px">Activo Prestado (Tipo + Modelo)</th>
+                        <th class="min-w-150px">Cantidad prestada</th>
+                        <th class="min-w-150px">Descripcion</th>
                         <th class="min-w-150px">Usuario Responsable</th>
                         <th class="min-w-100px">Almacén Origen</th>
                         <th class="min-w-100px">Fecha Salida</th>
@@ -49,7 +51,16 @@
                                 </div>
                             </div>
                         </td>
-
+                        <td>
+                            <div class="d-flex flex-column">
+                                <span class="text-gray-800 fw-bold">Prestado: {{ $prestamo->cantidad_prestada}}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex flex-column">
+                                <span class="text-gray-800 fw-bold">{{ $prestamo->descripcion}}</span>
+                            </div>
+                        </td>
                         <td>
                             <div class="d-flex flex-column">
                                 <span class="text-gray-800 fw-bold">{{ $prestamo->user->name ?? 'Usuario Eliminado' }}</span>

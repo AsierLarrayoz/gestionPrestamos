@@ -10,6 +10,7 @@ use Illuminate\Notifications\Notifiable;
 use App\Models\Prestamo;
 
 
+
 class User extends Authenticatable
 {
     use HasFactory, Notifiable;

@@ -85,15 +85,13 @@ class PrestamoController extends Controller
         ]);
     }
 
-    /**
-     * Función privada para realizar la lógica de BD y no repetir código
-     */
     private function ejecutarOperacion(Request $request, $activo, $prestamoPendiente)
     {
         $accion = $request->input('accion_confirmada');
         $cantidad = (int) $request->input('cantidad_confirmada');
         $almacenId = $request->input('almacen_id');
 
+        //DEVOLUCIÓN
         //DEVOLUCIÓN
         if ($accion === 'devolver') {
             if (!$prestamoPendiente) {
@@ -103,26 +101,56 @@ class PrestamoController extends Controller
                 return back()->with('error', "No puedes devolver $cantidad. Solo tienes {$prestamoPendiente->cantidad_prestada} prestados.");
             }
 
-            // 1. Devolucion total o parcial
-            if ($cantidad == $prestamoPendiente->cantidad_prestada) {
-                // Devolución Total
+            $diferencia = $prestamoPendiente->cantidad_prestada - $cantidad;
+            if ($diferencia == 0) {
+                // DEVOLUCIÓN TOTAL
                 $prestamoPendiente->update([
                     'fecha_devuelto' => Carbon::now(),
                     'cantidad_devuelta' => $cantidad,
                     'almacen_devuelto_id' => $almacenId
                 ]);
             } else {
-                //Devolucion parcial y actualizo cantidad del prestamo
-                $prestamoPendiente->decrement('cantidad_prestada', $cantidad);
-            }
+                // DEVOLUCIÓN PARCIAL
+                $tipoParcial = $request->input('tipo_devolucion_parcial', 'dividir');
 
-            // 2. Devolvemos Stock al Almacén
+                if ($tipoParcial === 'dividir') {
+                    //Dejar pendiente, se devolveran las que faltan mas tarde
+                    //se crea un prestamo con la cantidad devuelta ahora
+                    $prestamoPendiente->update([
+                        'cantidad_prestada' => $cantidad,
+                        'cantidad_devuelta' => $cantidad,
+                        'fecha_devuelto' => Carbon::now(),
+                        'almacen_devuelto_id' => $almacenId
+                    ]);
+
+                    //creamos uno nuevo oculto por los que faltan con fecha inicial igual al prestamo original.
+                    Prestamo::create([
+                        'fecha_prestado' => $prestamoPendiente->fecha_prestado,
+                        'activo_id' => $activo->id,
+                        'user_id' => $prestamoPendiente->user_id,
+                        'almacen_prestado_id' => $prestamoPendiente->almacen_prestado_id,
+                        'cantidad_prestada' => $diferencia,
+                        'descripcion' => $prestamoPendiente->descripcion . ' (Resto de un préstamo dividido)'
+                    ]);
+                } else {
+                    //Finalizar con pérdidas no se devolveran todas
+                    $prestamoPendiente->update([
+                        'cantidad_devuelta' => $cantidad,
+                        'fecha_devuelto' => Carbon::now(),
+                        'almacen_devuelto_id' => $almacenId
+                    ]);
+                }
+            }
             $activo->almacenes()->syncWithoutDetaching([
                 $almacenId => ['cantidad' => DB::raw("cantidad + $cantidad")]
             ]);
             $activo->increment('cantidad', $cantidad);
 
-            return back()->with('success', "Devolución de $cantidad unidades procesada.");
+            $mensaje = $diferencia > 0
+                ? "Devolución parcial de $cantidad. " . ($request->input('tipo_devolucion_parcial') == 'dividir' ? "Quedan $diferencia pendientes." : "Préstamo cerrado con pérdidas.")
+                : "Devolución total procesada.";
+
+            return back()->with('success', $mensaje);
         }
 
         // --- LÓGICA DE PRÉSTAMO ---

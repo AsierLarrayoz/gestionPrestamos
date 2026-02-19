@@ -21,9 +21,11 @@
             <h3 class="fw-bold">Calendario de Reservas</h3>
         </div>
         <div class="card-toolbar">
+            @if(Auth::user()->hasPermission('reservas.escribir'))
             <a href="{{ route('reservas.create') }}" class="btn btn-primary">
                 <i class="ki-outline ki-plus fs-2"></i> Nueva Reserva
             </a>
+            @endif
         </div>
     </div>
 

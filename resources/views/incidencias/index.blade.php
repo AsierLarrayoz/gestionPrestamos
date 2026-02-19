@@ -36,7 +36,7 @@
                     <tr>
                         <td>
                             <div class="d-flex flex-column">
-                                <a href="#" class="text-gray-800 text-hover-primary mb-1 fw-bold">{{ $incidencia->titulo }}</a>
+                                <label class="text-gray-800 text-primary mb-1 fw-bold">{{ $incidencia->titulo }}</label>
                                 <span class="text-muted fs-7">{{ Str::limit($incidencia->descripcion, 40) }}</span>
                             </div>
                         </td>
@@ -83,6 +83,7 @@
                         </td>
 
                         <td class="text-end">
+                            @if(Auth::user()->hasPermission('incidencias.escribir'))
                             <a href="{{ route('incidencias.edit', $incidencia->id) }}" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1">
                                 <i class="ki-outline ki-pencil fs-2"></i>
                             </a>
@@ -93,6 +94,9 @@
                                     <i class="ki-outline ki-trash fs-2"></i>
                                 </button>
                             </form>
+                            @else
+                            <label class="text-muted fs-7">No tienes permiso</label>
+                            @endif
                         </td>
                     </tr>
                     @empty

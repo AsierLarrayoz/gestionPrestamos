@@ -50,11 +50,10 @@
                             <span class="badge badge-light">{{ $lector->tipo ?? 'Sin tipo' }}</span>
                         </td>
                         <td class="text-end">
+                            @if(Auth::user()->hasPermission('lectores.escribir'))
                             <a href="{{ route('lectores.edit', $lector->id) }}" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1">
                                 <i class="ki-outline ki-pencil fs-2"></i>
                             </a>
-
-
                             <button onclick="confirmarBorrado('{{ $lector->id }}', '{{ $lector->nombre }}')" class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm">
                                 <i class="ki-outline ki-trash fs-2"></i>
                             </button>
@@ -63,6 +62,9 @@
                                 @csrf
                                 @method('DELETE')
                             </form>
+                            @else
+                            <label class="text-muted fs-7">No tienes permiso</label>
+                            @endif
                         </td>
                     </tr>
                     @endforeach

@@ -93,10 +93,11 @@
                     </tbody>
                 </table>
             </div>
-
+            @if(Auth::user()->hasPermission('usuarios.escribir'))
             <div class="d-flex justify-content-end mt-10">
                 <button type="submit" class="btn btn-primary">Actualizar Rol</button>
             </div>
+            @endif
         </form>
     </div>
 </div>

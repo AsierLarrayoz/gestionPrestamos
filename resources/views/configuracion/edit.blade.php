@@ -21,7 +21,6 @@
                     <input type="email" name="email" value="{{ $usuario->email }}" class="form-control form-control-solid" required />
                 </div>
             </div>
-
             <div class="fv-row mb-8">
                 <label class="fs-6 fw-bold mb-2">Rol Principal</label>
                 <select name="role_id" class="form-select form-select-solid" data-control="select2">
@@ -34,7 +33,6 @@
                     @endforeach
                 </select>
             </div>
-
             <div class="mb-8">
                 <div class="d-flex align-items-center collapsible py-3 toggle mb-0" data-bs-toggle="collapse" data-bs-target="#kt_permisos_manuales">
                     <div class="btn btn-sm btn-icon btn-active-color-primary ms-n3 me-2">
@@ -43,8 +41,6 @@
                     </div>
                     <h4 class="text-gray-700 fw-bold cursor-pointer mb-0">Permisos Directos / Adicionales</h4>
                 </div>
-
-                {{-- Añade 'show' a la clase si el usuario ya tiene permisos directos --}}
                 <div id="kt_permisos_manuales" class="collapse {{ $usuario->permissions->count() > 0 ? 'show' : '' }} mt-5">
 
                     <div class="table-responsive">
@@ -106,10 +102,11 @@
                     <input type="password" name="password_confirmation" class="form-control form-control-solid" />
                 </div>
             </div>
-
+            @if(Auth::user()->hasPermission('usuarios.escribir'))
             <div class="text-center pt-10">
                 <button type="submit" class="btn btn-primary">Actualizar Usuario</button>
             </div>
+            @endif
         </form>
     </div>
 </div>

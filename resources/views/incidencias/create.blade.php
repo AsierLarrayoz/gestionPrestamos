@@ -39,7 +39,7 @@
                             <i class="ki-outline ki-cross fs-2"></i>
                         </button>
                     </div>
-                    <div class="form-text">Si seleccionas un activo prestado, intentaremos seleccionar esto automáticamente.</div>
+                    <!--<div class="form-text">Si seleccionas un activo prestado, intentaremos seleccionar esto automáticamente.</div>-->
                 </div>
             </div>
 

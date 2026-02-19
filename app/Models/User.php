@@ -64,8 +64,6 @@ class User extends Authenticatable
 
         // 3. Permisos a través de roles
         foreach ($this->roles as $role) {
-            // ¡OJO AQUÍ! Corregido: antes ponía $role->permissions
-            // Debe ser $role->permisos porque así se llama la función en el modelo Rol
             if ($role->permisos->contains('name', $permissionName)) {
                 return true;
             }

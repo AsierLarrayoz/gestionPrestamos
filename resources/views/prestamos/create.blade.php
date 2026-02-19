@@ -87,9 +87,35 @@
                     </div>
 
                     <label class="form-label fw-bold">Cantidad a operar:</label>
-                    <input type="number" name="cantidad_confirmada" class="form-control form-control-solid fs-1 text-center mb-5" value="1" min="1" autofocus required />
+                    <input type="number" id="input_cantidad" name="cantidad_confirmada" class="form-control form-control-solid fs-1 text-center mb-5" value="1" min="0" autofocus required />
+
+                    {{-- NUEVO BLOQUE: Opciones de devolución parcial (Oculto por defecto mediante JS) --}}
+                    @if(session('prestamoExistente'))
+                    <div id="opciones_parciales" class="text-start bg-light-danger border border-danger p-4 rounded mb-5" style="display: none;">
+                        <label class="form-label fw-bold text-danger mb-3">
+                            <i class="ki-outline ki-warning fs-3 text-danger me-1"></i> ¡Devolución Parcial Detectada!
+                        </label>
+                        <p class="text-muted fs-7 mb-4">Faltan <span id="span_faltantes" class="fw-bold fs-5 text-dark"></span> unidades. ¿Qué hacemos con ellas?</p>
+
+                        <div class="form-check form-check-custom form-check-solid mb-3">
+                            <input class="form-check-input" type="radio" name="tipo_devolucion_parcial" value="dividir" id="radio_dividir" checked />
+                            <label class="form-check-label text-gray-700" for="radio_dividir">
+                                <strong>Dejar pendientes</strong> (El operario las devolverá más tarde)
+                            </label>
+                        </div>
+
+                        <div class="form-check form-check-custom form-check-solid">
+                            <input class="form-check-input" type="radio" name="tipo_devolucion_parcial" value="finalizar" id="radio_finalizar" />
+                            <label class="form-check-label text-gray-700" for="radio_finalizar">
+                                <strong>Cerrar préstamo con pérdidas</strong> (Equipos perdidos o rotos)
+                            </label>
+                        </div>
+                    </div>
+                    @endif
+                    {{-- FIN NUEVO BLOQUE --}}
 
                 </div>
+
                 @if(Auth::user()->hasPermission('prestamos.escribir'))
                 <div class="modal-footer justify-content-center">
                     <button type="submit" name="accion_confirmada" value="prestar" class="btn btn-primary">
@@ -113,15 +139,57 @@
 @section('scripts')
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        const input = document.getElementById('input_codigo');
+        const inputCodigo = document.getElementById('input_codigo');
+        const inputCantidad = document.getElementById('input_cantidad');
+        const divOpciones = document.getElementById('opciones_parciales');
 
-        input.focus();
+        // --- 1. FOCO INICIAL ---
+        if (inputCantidad) {
+            inputCantidad.focus();
+            inputCantidad.select();
+        } else if (inputCodigo) {
+            inputCodigo.focus();
+        }
 
+        // --- 2. CONTROL DEL CLIC (Anti-robo de foco) ---
         document.addEventListener("click", function(e) {
-            if (e.target.tagName !== 'SELECT' && e.target.tagName !== 'OPTION') {
-                input.focus();
+            const tagsPermitidos = ['INPUT', 'SELECT', 'OPTION', 'BUTTON', 'LABEL'];
+            if (tagsPermitidos.includes(e.target.tagName)) return;
+
+            if (inputCantidad) {
+                inputCantidad.focus();
+            } else if (inputCodigo) {
+                inputCodigo.focus();
             }
         });
+
+        // --- 3. LÓGICA DE DEVOLUCIÓN PARCIAL (Corregida para evitar errores de sintaxis) ---
+        // Lo envolvemos en comillas para que el IDE no falle, y usamos parseInt para asegurarnos de que es un número.
+        // Si no hay sesión, Blade imprimirá "0".
+        const maxPrestado = parseInt("{{ session('cantidadYaPrestada', 0) }}") || 0;
+
+        if (inputCantidad && divOpciones) {
+            const spanFaltantes = document.getElementById('span_faltantes');
+
+            // Función que comprueba si debe mostrar el panel rojo
+            function verificarParcial() {
+                const valorTeclado = parseInt(inputCantidad.value);
+
+                // Si el valor es un número, mayor o igual a 0 y menor que el total prestado (Ej: 35 < 50)
+                if (!isNaN(valorTeclado) && valorTeclado >= 0 && valorTeclado < maxPrestado) {
+                    spanFaltantes.textContent = maxPrestado - valorTeclado; // Faltan 15
+                    divOpciones.style.display = 'block';
+                } else {
+                    divOpciones.style.display = 'none';
+                }
+            }
+
+            // Que escuche cada vez que tocas las flechitas o tecleas
+            inputCantidad.addEventListener('input', verificarParcial);
+
+            // Que compruebe inmediatamente al cargar la pantalla
+            verificarParcial();
+        }
     });
 </script>
 @endsection

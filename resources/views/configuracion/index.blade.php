@@ -57,16 +57,15 @@
                         </td>
 
                         <td class="text-end">
-                            @if(Auth::user()->hasPermission('usuarios.escribir'))
+
                             <a href="{{ route('configuracion.edit', $user->id) }}" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1" title="Editar">
                                 <i class="ki-outline ki-pencil fs-2"></i>
                             </a>
-
+                            @if(Auth::user()->hasPermission('usuarios.escribir'))
                             <button type="button" class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm"
                                 onclick="confirmarEliminacion('{{ $user->id }}', '{{ addslashes($user->name) }}')" title="Eliminar">
                                 <i class="ki-outline ki-trash fs-2"></i>
                             </button>
-
                             <form id="delete-form-{{ $user->id }}" action="{{ route('configuracion.destroy', $user->id) }}" method="POST" style="display: none;">
                                 @csrf
                                 @method('DELETE')

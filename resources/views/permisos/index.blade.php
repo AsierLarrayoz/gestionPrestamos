@@ -50,7 +50,7 @@
                             </a>
 
                             {{-- No dejar borrar al Super Admin (ID 1) --}}
-                            @if($rol->id !== 1)
+                            @if($rol->id !== 1 && Auth::user()->hasPermission('usuarios.escribir'))
                             <form action="{{ route('permisos.destroy', $rol->id) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Borrar este rol?');">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm"

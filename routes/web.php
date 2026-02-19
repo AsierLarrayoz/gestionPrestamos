@@ -43,39 +43,38 @@ Route::middleware(['auth'])->group(function () {
     // Escritura (Crear, Editar, Borrar)
     Route::middleware(['admin:usuarios.escribir'])->group(function () {
         // Usuarios
-        Route::get('/usuarios/create', [ConfiguracionController::class, 'create'])->name('configuracion.create');
         Route::post('/usuarios', [ConfiguracionController::class, 'store'])->name('configuracion.store');
-        Route::get('/usuarios/{usuario}/edit', [ConfiguracionController::class, 'edit'])->name('configuracion.edit');
         Route::put('/usuarios/{usuario}', [ConfiguracionController::class, 'update'])->name('configuracion.update');
         Route::delete('/usuarios/{usuario}', [ConfiguracionController::class, 'destroy'])->name('configuracion.destroy');
 
         // Roles y Permisos
-        Route::resource('permisos', PermisoController::class)->except(['index', 'show']);
+        Route::resource('permisos', PermisoController::class)->except(['index', 'show',]);
     });
     // Lectura (Ver listado)
     Route::middleware(['admin:usuarios.leer'])->group(function () {
+        Route::get('/usuarios/create', [ConfiguracionController::class, 'create'])->name('configuracion.create');
         Route::get('/usuarios', [ConfiguracionController::class, 'index'])->name('configuracion.index');
+        Route::get('/usuarios/{usuario}/edit', [ConfiguracionController::class, 'edit'])->name('configuracion.edit');
         Route::get('/permisos', [PermisoController::class, 'index'])->name('permisos.index');
+        Route::resource('permisos', PermisoController::class)->only(['index', 'show', 'edit']);
     });
 
     // --- 3. ALMACENES ---
     Route::middleware(['admin:almacenes.escribir'])->group(function () {
         Route::post('/almacenes', [AlmacenController::class, 'store'])->name('almacenes.store');
-        Route::get('/almacenes/create', [AlmacenController::class, 'create'])->name('almacenes.create'); // Si tienes vista create
-        Route::get('/almacenes/{almacen}/edit', [AlmacenController::class, 'edit'])->name('almacenes.edit');
         Route::put('/almacenes/{almacen}', [AlmacenController::class, 'update'])->name('almacenes.update');
         Route::delete('/almacenes/{almacen}', [AlmacenController::class, 'destroy'])->name('almacenes.destroy');
     });
     Route::middleware(['admin:almacenes.leer'])->group(function () {
+        Route::get('/almacenes/{almacen}/edit', [AlmacenController::class, 'edit'])->name('almacenes.edit');
+        Route::get('/almacenes/create', [AlmacenController::class, 'create'])->name('almacenes.create'); // Si tienes vista create
         Route::resource('almacenes', AlmacenController::class)->only(['index', 'show']);
     });
 
     // --- 4. ACTIVOS ---
     Route::middleware(['admin:activos.escribir'])->group(function () {
         // Rutas explícitas para evitar conflictos con {id}
-        Route::get('/activos/create', [ActivoController::class, 'create'])->name('activos.create');
         Route::post('/activos', [ActivoController::class, 'store'])->name('activos.store');
-        Route::get('/activos/{activo}/edit', [ActivoController::class, 'edit'])->name('activos.edit');
         Route::put('/activos/{activo}', [ActivoController::class, 'update'])->name('activos.update');
         Route::delete('/activos/{activo}', [ActivoController::class, 'destroy'])->name('activos.destroy');
 
@@ -97,6 +96,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/get-modelos/{id}', [ActivoController::class, 'getModelosByMarca'])->name('activos.getModelos');
     });
     Route::middleware(['admin:activos.leer'])->group(function () {
+        Route::get('/activos/{activo}/edit', [ActivoController::class, 'edit'])->name('activos.edit');
+        Route::get('/activos/create', [ActivoController::class, 'create'])->name('activos.create');
         Route::resource('activos', ActivoController::class)->only(['index', 'show']);
         Route::get('/activos/{id}/print-qr', [ActivoController::class, 'printQr'])->name('activos.print-qr');
     });
@@ -105,8 +106,6 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['admin:prestamos.escribir'])->group(function () {
         Route::get('/prestamos/create', [PrestamoController::class, 'create'])->name('prestamos.create');
         Route::post('/prestamos', [PrestamoController::class, 'store'])->name('prestamos.store');
-        // Reservas
-        Route::resource('reservas', ReservaController::class);
     });
     Route::middleware(['admin:prestamos.leer'])->group(function () {
         Route::get('prestamos/historial', [PrestamoController::class, 'historial'])->name('prestamos.historial');
@@ -127,6 +126,10 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['admin:incidencias.leer'])->group(function () {
         Route::resource('incidencias', IncidenciaController::class)->except(['store', 'update', 'destroy']);
     });
+    Route::middleware(['admin:incidencias.leer'])->group(function () {
+        Route::resource('incidencias', IncidenciaController::class)->only(['store', 'update', 'destroy']);
+    });
+    //LECTORES
     Route::middleware(['auth', 'admin:lectores.escribir'])->group(function () {
         Route::post('/lectores', [LectorController::class, 'store'])->name('lectores.store');
         Route::put('/lectores/{id}', [LectorController::class, 'update'])->name('lectores.update');
@@ -137,6 +140,17 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/lectores/create', [LectorController::class, 'create'])->name('lectores.create');
         Route::get('/lectores/{id}/edit', [LectorController::class, 'edit'])->name('lectores.edit');
     });
-}); // Fin Middleware Auth
+    //RESERVAS
+    Route::middleware(['admin:reservas.escribir'])->group(function () {
+        Route::post('/reservas', [ReservaController::class, 'store'])->name('reservas.store');
+        Route::put('/reservas/{id}', [ReservaController::class, 'update'])->name('reservas.update');
+        Route::delete('/reservas/{reserva}', [ReservaController::class, 'destroy'])->name('reservas.destroy');
+    });
+    Route::middleware(['admin:reservas.leer'])->group(function () {
+        Route::get('/reservas', [ReservaController::class, 'index'])->name('reservas.index');
+        Route::get('/reservas/create', [ReservaController::class, 'create'])->name('reservas.create');
+        Route::get('/reservas/{id}/edit', [ReservaController::class, 'edit'])->name('reservas.edit');
+    });
+});
 
 require __DIR__ . '/auth.php';

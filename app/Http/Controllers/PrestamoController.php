@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Prestamo;
 use App\Models\Activo;
 use App\Models\ModelosBasicos\Almacen;
+use App\Models\ModelosBasicos\Lector;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -176,6 +177,95 @@ class PrestamoController extends Controller
             return back()->with('success', "Préstamo de $cantidad unidades realizado.");
         }
 
+
         return back()->with('error', 'Acción no reconocida.');
+    }
+    public function apiLectura(Request $request)
+    {
+        $lectorId = $request->input('reader_id');
+
+        $codigo = $request->input('qr') ?? $request->input('rfid');
+
+        if (!$lectorId || !$codigo) {
+            return response()->json([
+                'status' => 'KO',
+                'msg' => 'Faltan datos: reader_id o codigo (qr/rfid)'
+            ]);
+        }
+
+        $lector = Lector::where('identificador_unico', $lectorId)->first();
+        if (!$lector) {
+            return response()->json(['status' => 'KO', 'msg' => 'Lector no reconocido']);
+        }
+
+        $activo = Activo::with(['modelo', 'tipo'])
+            ->where('rfid_code', $codigo)
+            ->orWhere('uuid', $codigo)
+            ->orWhere('serial_number', $codigo)
+            ->first();
+
+        if (!$activo) {
+            return response()->json(['status' => 'KO', 'msg' => 'Activo no encontrado']);
+        }
+
+        $prestamoPendiente = Prestamo::where('activo_id', $activo->id)
+            ->whereNull('fecha_devuelto')
+            ->first();
+
+        $systemUserId = 4;
+
+        try {
+            DB::beginTransaction();
+
+            if ($prestamoPendiente) {
+                // --- DEVOLUCIÓN ---
+                $prestamoPendiente->update([
+                    'fecha_devuelto' => Carbon::now(),
+                    'cantidad_devuelta' => 1,
+                    'almacen_devuelto_id' => $lector->almacen_id
+                ]);
+
+                $activo->almacenes()->syncWithoutDetaching([
+                    $lector->almacen_id => ['cantidad' => DB::raw("cantidad + 1")]
+                ]);
+                $activo->increment('cantidad', 1);
+
+                DB::commit();
+                return response()->json([
+                    'status' => 'OK',
+                    'msg' => 'Devolucion: ' . ($activo->tipo->tipo ?? 'Item') . ' ' . ($activo->modelo->modelo ?? '')
+                ]);
+            } else {
+                // --- PRÉSTAMO ---
+                $stockLector = $activo->almacenes()->where('almacen_id', $lector->almacen_id)->first()->pivot->cantidad ?? 0;
+
+                if ($stockLector < 1) {
+                    return response()->json(['status' => 'KO', 'msg' => 'El activo no esta en este almacen']);
+                }
+
+                Prestamo::create([
+                    'fecha_prestado' => Carbon::now(),
+                    'activo_id' => $activo->id,
+                    'user_id' => $systemUserId,
+                    'almacen_prestado_id' => $lector->almacen_id,
+                    'cantidad_prestada' => 1,
+                    'descripcion' => 'Movimiento automatico Lector: ' . $lector->nombre
+                ]);
+
+                $activo->almacenes()->updateExistingPivot($lector->almacen_id, [
+                    'cantidad' => DB::raw("cantidad - 1")
+                ]);
+                $activo->decrement('cantidad', 1);
+
+                DB::commit();
+                return response()->json([
+                    'status' => 'OK',
+                    'msg' => 'Prestamo: ' . ($activo->tipo->tipo ?? 'Item') . ' ' . ($activo->modelo->modelo ?? '')
+                ]);
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['status' => 'KO', 'msg' => 'Error DB: ' . $e->getMessage()]);
+        }
     }
 }
